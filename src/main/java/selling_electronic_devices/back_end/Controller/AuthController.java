@@ -83,7 +83,6 @@ public class AuthController {
         try {
             long customerId = request.get("customerId");
 
-            // Xử lý sau: ...
 
             return ResponseEntity.ok("Customer logout successfully.");
         } catch (Exception e) {

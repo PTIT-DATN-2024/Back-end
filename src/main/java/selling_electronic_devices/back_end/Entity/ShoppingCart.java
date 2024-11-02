@@ -7,42 +7,43 @@ import java.time.LocalDateTime;
 public class ShoppingCart {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long shoppingCartId;
+    @Column(name = "shopping_card_id")
+    private String shoppingCartId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private String productId;
 
+    @Column(name = "quantity", nullable = false)
     private int quantity;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Long getShoppingCartId() {
+    public String getShoppingCartId() {
         return shoppingCartId;
     }
 
-    public void setShoppingCartId(Long shoppingCartId) {
+    public void setShoppingCartId(String shoppingCartId) {
         this.shoppingCartId = shoppingCartId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public Product getProduct() {
-        return product;
+    public String getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
     public int getQuantity() {

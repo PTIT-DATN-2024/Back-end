@@ -10,13 +10,19 @@ public class Seller {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long sellerId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
+    @Column(name = "store_name", length = 255, nullable = false)
     private String storeName;
+
+    @Column(name = "store_description", length = 255)
     private String storeDescription;
+
+    @Column(name = "contact_info")
     private String contactInfo;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Long getSellerId() {
@@ -27,12 +33,12 @@ public class Seller {
         this.sellerId = sellerId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getStoreName() {

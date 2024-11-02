@@ -7,26 +7,29 @@ import java.time.LocalDateTime;
 public class OrderItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderItemId;
+    @Column(name = "order_item_id")
+    private String orderItemId;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
+    @Column(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private String product;
 
+    @Column(name = "quantity", nullable = false)
     private int quantity;
+
+    @Column(name = "price", columnDefinition = "NUMERIC(10, 2)", nullable = false)
     private double price;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Long getOrderItemId() {
+    public String getOrderItemId() {
         return orderItemId;
     }
 
-    public void setOrderItemId(Long orderItemId) {
+    public void setOrderItemId(String orderItemId) {
         this.orderItemId = orderItemId;
     }
 
@@ -38,11 +41,11 @@ public class OrderItem {
         this.order = order;
     }
 
-    public Product getProduct() {
+    public String getProduct() {
         return product;
     }
 
-    public void setProduct(Product product) {
+    public void setProduct(String product) {
         this.product = product;
     }
 

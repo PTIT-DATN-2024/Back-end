@@ -7,23 +7,35 @@ import java.time.LocalDateTime;
 public class Banner {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long bannerId;
+    @Column(name = "banner_id")
+    private String bannerId;
 
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "link_url")
     private String linkUrl;
+
+    @Column(name = "position")
     private int position;
-    private boolean isActive = true;
 
+    @Column(name = "is_active")
+    private String isActive;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime updatedAt = LocalDateTime.now();
 
-    public Long getBannerId() {
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public String getBannerId() {
         return bannerId;
     }
 
-    public void setBannerId(Long bannerId) {
+    public void setBannerId(String bannerId) {
         this.bannerId = bannerId;
     }
 
@@ -59,12 +71,12 @@ public class Banner {
         this.position = position;
     }
 
-    public boolean isActive() {
+    public String getIsActive() {
         return isActive;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -8,34 +8,36 @@ import java.util.List;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+    @Column(name = "order_id")
+    private String orderId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
+    @Column(name = "total_amount", columnDefinition = "NUMERIC(10, 2)", nullable = false)
     private double totalAmount;
 
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    @Column(name = "status", length = 255, nullable = false)
+    private String status;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Long getOrderId() {
+
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(Long orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public double getTotalAmount() {
@@ -46,11 +48,11 @@ public class Order {
         this.totalAmount = totalAmount;
     }
 
-    public OrderStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(OrderStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -62,8 +64,3 @@ public class Order {
         this.createdAt = createdAt;
     }
 }
-
-enum OrderStatus {
-    PENDING, COMPLETED, CANCELED
-}
-
