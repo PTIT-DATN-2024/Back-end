@@ -3,12 +3,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
-public class Review {
+@Table(name = "ratings")
+public class Rating {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long reviewId;
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private String ratingId;
 
     @Column(name = "user_id")
     private String userId;
@@ -25,12 +25,12 @@ public class Review {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Long getReviewId() {
-        return reviewId;
+    public String getRatingId() {
+        return ratingId;
     }
 
-    public void setReviewId(Long reviewId) {
-        this.reviewId = reviewId;
+    public void setRatingId(String ratingId) {
+        this.ratingId = ratingId;
     }
 
     public String getUserId() {

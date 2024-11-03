@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Dto.VoteDto;
 import selling_electronic_devices.back_end.Entity.Product;
-import selling_electronic_devices.back_end.Entity.Review;
+import selling_electronic_devices.back_end.Entity.Rating;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
-import selling_electronic_devices.back_end.Repository.ReviewRepository;
+import selling_electronic_devices.back_end.Repository.RatingRepository;
 
 import java.util.*;
 
@@ -20,7 +20,7 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
-    private ReviewRepository reviewRepository;
+    private RatingRepository ratingRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -63,14 +63,14 @@ public class ProductService {
     }
 
     public String rateProduct(String productId, VoteDto voteDto) {
-        Review review = new Review();
-        review.setProductId(productId);
-        review.setUserId(voteDto.getUserId());
-        review.setProductId(voteDto.getProductId());
-        review.setRating(voteDto.getRating());
-        review.setComment(voteDto.getComment());
+        Rating rating = new Rating();
+        rating.setProductId(productId);
+        rating.setUserId(voteDto.getUserId());
+        rating.setProductId(voteDto.getProductId());
+        rating.setRating(voteDto.getRating());
+        rating.setComment(voteDto.getComment());
 
-        reviewRepository.save(review);
+        ratingRepository.save(rating);
 
         return "Successful product reviews";
     }
