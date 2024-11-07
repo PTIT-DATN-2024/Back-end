@@ -37,20 +37,20 @@ public class CustomerController {
         }
     }
 
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<?> deleteUser(@PathVariable String customerId) {
-        try {
-            boolean isDeleted = customerService.deleteUser(customerId);
-            if (isDeleted) {
-                return ResponseEntity.ok("User deleted successfully.");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
-        }
-    }
+//    @DeleteMapping("/{customerId}")
+//    public ResponseEntity<?> deleteUser(@PathVariable String customerId) {
+//        try {
+//            boolean isDeleted = customerService.deleteUser(customerId);
+//            if (isDeleted) {
+//                return ResponseEntity.ok("User deleted successfully.");
+//            } else {
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+//        }
+//    }
 
 
 }
