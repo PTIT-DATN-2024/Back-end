@@ -1,15 +1,13 @@
 package selling_electronic_devices.back_end.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.ProductDto;
-import selling_electronic_devices.back_end.Dto.VoteDto;
+import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Service.ProductService;
@@ -37,8 +35,7 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
 
-        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.asc("productId")));
-        return ResponseEntity.ok(productService.getAllProducts(pageRequest));
+        return ResponseEntity.ok(productService.getAllProducts(offset, limit));
     }
 
     @GetMapping("/{categoryId}")
@@ -90,8 +87,8 @@ public class ProductController {
     }
 
     @PostMapping("/rateProduct/{productId}")
-    public ResponseEntity<?> rateProduct(@PathVariable String productId, @RequestBody VoteDto voteDto) {
-        return ResponseEntity.ok(productService.rateProduct(productId, voteDto));
+    public ResponseEntity<?> rateProduct(@PathVariable String productId, @RequestBody ProductReviewDto productReviewDto) {
+        return ResponseEntity.ok(productService.rateProduct(productId, productReviewDto));
     }
 
 

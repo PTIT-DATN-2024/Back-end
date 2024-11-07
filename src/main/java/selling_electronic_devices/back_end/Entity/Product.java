@@ -10,26 +10,43 @@ public class Product {
     @Column(name = "product_id")
     private String productId;
 
-    @Column(name = "category_id", length = 255, nullable = false)
+    @Column(name = "category_id")
     private String categoryId;
 
-    @Column(name = "seller_id", length = 255, nullable = false)
-    private String seller;
+    @Column(name = "product_discount_id")
+    private String productDiscountId;
 
-    @Column(name = "name", length = 255, nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "description", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "total")
+    private Long total;
+
+    @Column(name = "rate")
+    private Double rate;
+
+    @Column(name = "number_vote")
+    private Long numberVote;
+
+    @Column(name = "description")
     private String description;
 
-    @Column(name = "price", columnDefinition = "NUMERIC(10, 2)", nullable = false)
-    private double price;
+    @Column(name = "import_price")
+    private Double importPrice;
 
-    @Column(name = "stock", nullable = false)
-    private int stock;
+    @Column(name = "selling_price")
+    private Double sellingPrice;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "create_at")
+    private LocalDateTime createAt = LocalDateTime.now();
+
+    @Column(name = "update_at")
+    private LocalDateTime updateAt;
+
+    // Getters and Setters
 
     public String getProductId() {
         return productId;
@@ -47,12 +64,12 @@ public class Product {
         this.categoryId = categoryId;
     }
 
-    public String getSeller() {
-        return seller;
+    public String getProductDiscountId() {
+        return productDiscountId;
     }
 
-    public void setSeller(String seller) {
-        this.seller = seller;
+    public void setProductDiscountId(String productDiscountId) {
+        this.productDiscountId = productDiscountId;
     }
 
     public String getName() {
@@ -63,6 +80,30 @@ public class Product {
         this.name = name;
     }
 
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
+
+    public Double getRate() {
+        return rate;
+    }
+
+    public void setRate(Double rate) {
+        this.rate = rate;
+    }
+
+    public Long getNumberVote() {
+        return numberVote;
+    }
+
+    public void setNumberVote(Long numberVote) {
+        this.numberVote = numberVote;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -71,27 +112,43 @@ public class Product {
         this.description = description;
     }
 
-    public double getPrice() {
-        return price;
+    public Double getImportPrice() {
+        return importPrice;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setImportPrice(Double importPrice) {
+        this.importPrice = importPrice;
     }
 
-    public int getStock() {
-        return stock;
+    public Double getSellingPrice() {
+        return sellingPrice;
     }
 
-    public void setStock(int stock) {
-        this.stock = stock;
+    public void setSellingPrice(Double sellingPrice) {
+        this.sellingPrice = sellingPrice;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
+    }
+
+    public LocalDateTime getUpdateAt() {
+        return updateAt;
+    }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
     }
 }

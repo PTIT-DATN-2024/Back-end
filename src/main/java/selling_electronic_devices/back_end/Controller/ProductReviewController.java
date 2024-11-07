@@ -7,33 +7,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import selling_electronic_devices.back_end.Dto.RatingDto;
-import selling_electronic_devices.back_end.Service.RatingService;
+import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Service.ProductReviewService;
 
 @RestController
 @RequestMapping("/comment")
-public class RatingController {
+public class ProductReviewController {
     @Autowired
-    private RatingService ratingService;
+    private ProductReviewService productReviewService;
 
     @PostMapping
-    public ResponseEntity<?> createRating(@RequestBody RatingDto ratingDto) {
-        return ResponseEntity.ok(ratingService.createRating(ratingDto));
+    public ResponseEntity<?> createRating(@RequestBody ProductReviewDto productReviewDto) {
+        return ResponseEntity.ok(productReviewService.createProductReview(productReviewDto));
     }
 
     @GetMapping("/product/{productId}")
     public ResponseEntity<?> getRatingsByProduct(@PathVariable String productId) {
-        return ResponseEntity.ok(ratingService.getRatingsByProduct(productId));
+        return ResponseEntity.ok(productReviewService.getProductReviewsByProduct(productId));
     }
 
-    @PutMapping("/{ratingId}")
-    public ResponseEntity<?> updateRating(@PathVariable Long ratingId, @RequestBody RatingDto ratingDto) {
+    @PutMapping("/{productReviewId}")
+    public ResponseEntity<?> updateRating(@PathVariable String productReviewId, @RequestBody ProductReviewDto productReviewDto) {
         try {
-            boolean isUpdated = ratingService.updateRating(ratingId, ratingDto);
+            boolean isUpdated = productReviewService.updateProductReview(productReviewId, productReviewDto);
             if (isUpdated) {
                 return ResponseEntity.ok("Updated rating and review successfully.");
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found rating and review with ID: " + ratingId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found rating and review with ID: " + productReviewId);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,10 +41,10 @@ public class RatingController {
         }
     }
 
-    @DeleteMapping("/{ratingId}")
-    public ResponseEntity<?> deleteRating(@PathVariable Long ratingId) {
+    @DeleteMapping("/{productReviewId}")
+    public ResponseEntity<?> deleteRating(@PathVariable String productReviewId) {
         try {
-            boolean isDeleted = ratingService.deleteRating(ratingId);
+            boolean isDeleted = productReviewService.deleteProductReview(productReviewId);
             if (isDeleted) {
                 return ResponseEntity.ok("Rating deleted successfully");
             } else {

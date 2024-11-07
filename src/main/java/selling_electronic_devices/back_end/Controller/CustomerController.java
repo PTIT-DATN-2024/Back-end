@@ -4,28 +4,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import selling_electronic_devices.back_end.Dto.UserDto;
-import selling_electronic_devices.back_end.Service.UserService;
+import selling_electronic_devices.back_end.Dto.CustomerDto;
+import selling_electronic_devices.back_end.Service.CustomerService;
 
 
 @RestController
-@RequestMapping("/user")
-public class UserController {
+@RequestMapping("/customer")
+public class CustomerController {
     @Autowired
-    private UserService userService;
+    private CustomerService customerService;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
 
-        return ResponseEntity.ok(userService.getAllUsers(offset, limit));
+        return ResponseEntity.ok(customerService.getAllCustomers(offset, limit));
     }
 
-    @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserDto userDto) {
+    @PutMapping("/{customerId}")
+    public ResponseEntity<?> updateUser(@PathVariable String customerId, @RequestBody CustomerDto customerDto) {
         try {
-            boolean isUpdated = userService.updateUser(userId, userDto);
+            boolean isUpdated = customerService.updateCustomer(customerId, customerDto);
             if (isUpdated) {
                 return ResponseEntity.ok("Updated Successfully.");
             } else {
@@ -37,10 +37,10 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable String userId) {
+    @DeleteMapping("/{customerId}")
+    public ResponseEntity<?> deleteUser(@PathVariable String customerId) {
         try {
-            boolean isDeleted = userService.deleteUser(userId);
+            boolean isDeleted = customerService.deleteUser(customerId);
             if (isDeleted) {
                 return ResponseEntity.ok("User deleted successfully.");
             } else {

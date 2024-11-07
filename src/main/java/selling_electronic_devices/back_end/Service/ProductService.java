@@ -7,12 +7,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductDto;
-import selling_electronic_devices.back_end.Dto.VoteDto;
+import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.Product;
-import selling_electronic_devices.back_end.Entity.Rating;
+import selling_electronic_devices.back_end.Entity.ProductReview;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
-import selling_electronic_devices.back_end.Repository.RatingRepository;
-
+import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 import java.util.*;
 
 @Service
@@ -20,7 +19,7 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
-    private RatingRepository ratingRepository;
+    private ProductReviewRepository productReviewRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -30,16 +29,21 @@ public class ProductService {
         Product product = new Product();
         product.setProductId(UUID.randomUUID().toString());
         product.setCategoryId(productDto.getCategoryId());
+        product.setProductDiscountId(productDto.getProductDiscountId());
         product.setName(productDto.getName());
-        product.setPrice(productDto.getPrice());
-        product.setStock(productDto.getStock());
-        product.setSeller(productDto.getSeller());
+        product.setTotal(productDto.getTotal());
+        product.setRate(productDto.getRate());
+        product.setNumberVote(productDto.getNumberVote());
         product.setDescription(productDto.getDescription());
+        product.setImportPrice(productDto.getImportPrice());
+        product.setSellingPrice(productDto.getSellingPrice());
+        product.setStatus(product.getStatus());
 
         productRepository.save(product);
     }
 
-    public List<Product> getAllProducts(PageRequest pageRequest) {
+    public List<Product> getAllProducts(int offset, int limit) {
+        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.asc("productId")));
         return productRepository.findAll(pageRequest).getContent();
     }
 
@@ -52,25 +56,29 @@ public class ProductService {
         if (productOp.isPresent()) {
             Product product = productOp.get();
             product.setCategoryId(productDto.getCategoryId());
-            product.setDescription(productDto.getDescription());
+            product.setProductDiscountId(productDto.getProductDiscountId());
             product.setName(productDto.getName());
-            product.setPrice(product.getPrice());
-            product.setStock(product.getStock());
-            product.setSeller(product.getSeller());
+            product.setTotal(productDto.getTotal());
+            product.setRate(productDto.getRate());
+            product.setNumberVote(productDto.getNumberVote());
+            product.setDescription(productDto.getDescription());
+            product.setImportPrice(productDto.getImportPrice());
+            product.setSellingPrice(productDto.getSellingPrice());
+            product.setStatus(product.getStatus());
 
             productRepository.save(product);
         }
     }
 
-    public String rateProduct(String productId, VoteDto voteDto) {
-        Rating rating = new Rating();
-        rating.setProductId(productId);
-        rating.setUserId(voteDto.getUserId());
-        rating.setProductId(voteDto.getProductId());
-        rating.setRating(voteDto.getRating());
-        rating.setComment(voteDto.getComment());
+    public String rateProduct(String productId, ProductReviewDto productReviewDto) {
+        ProductReview productReview = new ProductReview();
+        productReview.setProductReviewId(UUID.randomUUID().toString());
+        productReview.setProductId(productId);
+        productReview.setCustomerId(productReviewDto.getCustomerId());
+        productReview.setRating(productReviewDto.getRating());
+        productReview.setComment(productReviewDto.getComment());
 
-        ratingRepository.save(rating);
+        productReviewRepository.save(productReview);
 
         return "Successful product reviews";
     }

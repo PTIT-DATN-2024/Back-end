@@ -1,24 +1,17 @@
 package selling_electronic_devices.back_end.Dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-import java.time.LocalDateTime;
-
-public class RatingDto {
-    private String userId;
+public class ProductReviewDto {
+    private String customerId;
     private String productId;
-    private int rating;
+    private String rating;
     private String comment;
 
-    public String getUserId() {
-        return userId;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public String getProductId() {
@@ -29,11 +22,11 @@ public class RatingDto {
         this.productId = productId;
     }
 
-    public int getRating() {
+    public String getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(String rating) {
         this.rating = rating;
     }
 

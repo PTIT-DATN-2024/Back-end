@@ -1,8 +1,6 @@
 package selling_electronic_devices.back_end.Dto;
 
-import jakarta.persistence.Column;
-
-public class SignupRequest {
+public class CustomerDto {
     private String email;
     private String password;
     private String userName;

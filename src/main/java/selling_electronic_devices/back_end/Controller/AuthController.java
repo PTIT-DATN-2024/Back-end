@@ -18,6 +18,7 @@ import selling_electronic_devices.back_end.Jwt.JwtUtil;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -65,12 +66,13 @@ public class AuthController {
 
         // Tạo mới nếu email chưa tồn tại
         Customer customer = new Customer();
+        customer.setCustomerId(UUID.randomUUID().toString());
         customer.setEmail(signupRequest.getEmail());
         customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        customer.setUserName(signupRequest.getUserName());
+        customer.setFullName(signupRequest.getFullName());
+        customer.setAvatar(signupRequest.getAvatar());
         customer.setPhone(signupRequest.getPhone());
-        customer.setFirstName(signupRequest.getFirstName());
-        customer.setLastName(signupRequest.getLastName());
-        customer.setAddress(signupRequest.getAddress());
         customer.setIsDelete("0");
 
         customerRepository.save(customer);

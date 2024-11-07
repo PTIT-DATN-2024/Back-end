@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface BannerRepository extends JpaRepository<Banner, Long> {
     // Láy tất cả (ảnh) banner
-    List<Banner> findByIsActive(boolean isActive);
 }

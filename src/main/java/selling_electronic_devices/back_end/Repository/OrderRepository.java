@@ -6,5 +6,5 @@ import selling_electronic_devices.back_end.Entity.Order;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, String> {
-    List<Order> findByUserId(String userId);
+    List<Order> findByCustomerId(String customerId);
 }

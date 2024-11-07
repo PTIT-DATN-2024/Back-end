@@ -10,29 +10,28 @@ import java.time.LocalDateTime;
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "customer_id")
-    private long customerId;
+    private String customerId;
 
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "password", length = 255, nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "first_name", length = 255, nullable = false)
-    private String firstName;
+    @Column(name = "user_name", nullable = false)
+    private String userName;
 
-    @Column(name = "last_name", length = 255, nullable = false)
-    private String lastName;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 
-    @Column(name = "phone", length = 255, nullable = false)
+    @Column(name = "avatar")
+    private String avatar;
+
+    @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "address", length = 255, nullable = false)
-    private String address;
-
-    @Column(name = "is_delete", length = 255, nullable = false)
+    @Column(name = "is_delete", nullable = false)
     private String isDelete;
 
     @Column(name = "created_at", nullable = false)
@@ -41,11 +40,11 @@ public class Customer {
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
-    public long getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(long customerId) {
+    public void setCustomerId(String customerId) {
         this.customerId = customerId;
     }
 
@@ -65,20 +64,28 @@ public class Customer {
         this.password = password;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getPhone() {
@@ -87,14 +94,6 @@ public class Customer {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getIsDelete() {

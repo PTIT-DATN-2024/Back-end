@@ -1,28 +1,51 @@
 package selling_electronic_devices.back_end.Dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-
 public class OrderDto {
-
-    private String userId;
-    private double totalAmount;
+    private String customerId;
+    private String staffId;
+    private String shipAddress;
+    private Double shipFee;
+    private String paymentType;
     private String status;
 
-    public String getUserId() {
-        return userId;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
-    public double getTotalAmount() {
-        return totalAmount;
+    public String getStaffId() {
+        return staffId;
     }
 
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setStaffId(String staffId) {
+        this.staffId = staffId;
+    }
+
+    public String getShipAddress() {
+        return shipAddress;
+    }
+
+    public void setShipAddress(String shipAddress) {
+        this.shipAddress = shipAddress;
+    }
+
+    public Double getShipFee() {
+        return shipFee;
+    }
+
+    public void setShipFee(Double shipFee) {
+        this.shipFee = shipFee;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
     }
 
     public String getStatus() {

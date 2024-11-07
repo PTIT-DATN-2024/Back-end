@@ -21,8 +21,11 @@ public class OrderService {
     public void createOrder(OrderDto orderDto) {
         Order order = new Order();
         order.setOrderId(UUID.randomUUID().toString());
-        order.setUserId(orderDto.getUserId());
-        order.setTotalAmount(orderDto.getTotalAmount());
+        order.setCustomerId(orderDto.getCustomerId());
+        order.setStaffId(orderDto.getStaffId());
+        order.setShipAddress(orderDto.getShipAddress());
+        order.setShipFee(orderDto.getShipFee());
+        order.setPaymentType(orderDto.getPaymentType());
         order.setStatus(orderDto.getStatus());
 
         orderRepository.save(order);
@@ -38,8 +41,11 @@ public class OrderService {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isPresent()) {
             Order order = optionalOrder.get();
-            order.setUserId(orderDto.getUserId());
-            order.setTotalAmount(orderDto.getTotalAmount());
+            order.setCustomerId(orderDto.getCustomerId());
+            order.setStaffId(orderDto.getStaffId());
+            order.setShipAddress(orderDto.getShipAddress());
+            order.setShipFee(orderDto.getShipFee());
+            order.setPaymentType(orderDto.getPaymentType());
             order.setStatus(orderDto.getStatus());
 
             orderRepository.save(order);
@@ -53,6 +59,6 @@ public class OrderService {
                 () -> {
                     throw new RuntimeException("Order with ID " + orderId + " not found.");
                 }
-        );
+        );;
     }
 }

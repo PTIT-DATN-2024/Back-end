@@ -1,12 +1,34 @@
 package selling_electronic_devices.back_end.Dto;
 
+import jakarta.persistence.Column;
+
 public class ProductDto {
-    private String name;
-    private String description;
-    private double price;
-    private int stock;
     private String categoryId;
-    private String seller;
+    private String productDiscountId;
+    private String name;
+    private Long total;
+    private Double rate;
+    private Long numberVote;
+    private String description;
+    private Double importPrice;
+    private Double sellingPrice;
+    private String status;
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getProductDiscountId() {
+        return productDiscountId;
+    }
+
+    public void setProductDiscountId(String productDiscountId) {
+        this.productDiscountId = productDiscountId;
+    }
 
     public String getName() {
         return name;
@@ -14,6 +36,30 @@ public class ProductDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public void setTotal(Long total) {
+        this.total = total;
+    }
+
+    public Double getRate() {
+        return rate;
+    }
+
+    public void setRate(Double rate) {
+        this.rate = rate;
+    }
+
+    public Long getNumberVote() {
+        return numberVote;
+    }
+
+    public void setNumberVote(Long numberVote) {
+        this.numberVote = numberVote;
     }
 
     public String getDescription() {
@@ -24,35 +70,27 @@ public class ProductDto {
         this.description = description;
     }
 
-    public double getPrice() {
-        return price;
+    public Double getImportPrice() {
+        return importPrice;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setImportPrice(Double importPrice) {
+        this.importPrice = importPrice;
     }
 
-    public int getStock() {
-        return stock;
+    public Double getSellingPrice() {
+        return sellingPrice;
     }
 
-    public void setStock(int stock) {
-        this.stock = stock;
+    public void setSellingPrice(Double sellingPrice) {
+        this.sellingPrice = sellingPrice;
     }
 
-    public String getCategoryId() {
-        return categoryId;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getSeller() {
-        return seller;
-    }
-
-    public void setSeller(String seller) {
-        this.seller = seller;
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

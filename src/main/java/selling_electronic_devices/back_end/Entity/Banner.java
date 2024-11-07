@@ -10,26 +10,20 @@ public class Banner {
     @Column(name = "banner_id")
     private String bannerId;
 
-    @Column(name = "title")
-    private String title;
+    @Column(name = "admin_id")
+    private String adminId;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "image", nullable = false)
+    private String image;
 
-    @Column(name = "link_url")
-    private String linkUrl;
+    @Column(name = "description")
+    private String description;
 
-    @Column(name = "position")
-    private int position;
+    @Column(name = "create_at")
+    private LocalDateTime createAt = LocalDateTime.now();
 
-    @Column(name = "is_active")
-    private String isActive;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "update_at")
+    private LocalDateTime updateAt;
 
     public String getBannerId() {
         return bannerId;
@@ -39,60 +33,44 @@ public class Banner {
         this.bannerId = bannerId;
     }
 
-    public String getTitle() {
-        return title;
+    public String getAdminId() {
+        return adminId;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setAdminId(String adminId) {
+        this.adminId = adminId;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImage() {
+        return image;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImage(String image) {
+        this.image = image;
     }
 
-    public String getLinkUrl() {
-        return linkUrl;
+    public String getDescription() {
+        return description;
     }
 
-    public void setLinkUrl(String linkUrl) {
-        this.linkUrl = linkUrl;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public int getPosition() {
-        return position;
+    public LocalDateTime getCreateAt() {
+        return createAt;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
     }
 
-    public String getIsActive() {
-        return isActive;
+    public LocalDateTime getUpdateAt() {
+        return updateAt;
     }
 
-    public void setIsActive(String isActive) {
-        this.isActive = isActive;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
     }
 }
 

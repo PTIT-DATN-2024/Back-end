@@ -20,7 +20,7 @@ public class OrderController {
             orderService.createOrder(orderDto);
             return ResponseEntity.ok("Created order successfully");
         } catch (Exception e) {
-            return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error while creating order.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error while creating order.");
         }
     }
 
@@ -37,7 +37,7 @@ public class OrderController {
             orderService.updateOrder(orderId, orderDto);
             return ResponseEntity.ok("Updated order successfully");
         } catch (Exception e) {
-            return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error while updating order.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error while updating order.");
         }
     }
 

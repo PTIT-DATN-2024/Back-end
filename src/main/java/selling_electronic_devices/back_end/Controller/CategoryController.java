@@ -47,7 +47,7 @@ public class CategoryController {
             categoryService.deleteCategory(categoryId);
             return ResponseEntity.ok("Category deleted successfully");
         } catch (Exception e) {
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found category widt ID: " + categoryId);
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found category with ID: " + categoryId);
         }
     }
 

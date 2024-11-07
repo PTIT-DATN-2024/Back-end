@@ -1,7 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "categories")

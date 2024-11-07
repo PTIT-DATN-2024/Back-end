@@ -2,9 +2,9 @@ package selling_electronic_devices.back_end.Dto;
 
 public class LoginResponse {
     private String jwt;
-    private long id;
+    private String id;
 
-    public LoginResponse(String jwt, long id) {
+    public LoginResponse(String jwt, String id) {
         this.jwt = jwt;
         this.id = id;
     }
@@ -17,11 +17,11 @@ public class LoginResponse {
         this.jwt = jwt;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 }
