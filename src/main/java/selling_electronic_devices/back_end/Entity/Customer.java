@@ -19,7 +19,7 @@ public class Customer {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "username", nullable = false)
     private String userName;
 
     @Column(name = "full_name", nullable = false)

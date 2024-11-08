@@ -1,6 +1,7 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -8,9 +9,7 @@ import selling_electronic_devices.back_end.Dto.OrderDto;
 import selling_electronic_devices.back_end.Entity.Order;
 import selling_electronic_devices.back_end.Repository.OrderRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class OrderService {
@@ -32,9 +31,13 @@ public class OrderService {
     }
 
 
-    public List<Order> getAllOrders(int offset, int limit) {
+    public Map<String, Object> getAllOrders(int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("orderId")));
-        return orderRepository.findAll(pageRequest).getContent();
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get All Orders Successfully.");
+        response.put("orders", orderRepository.findAll(pageRequest).getContent());
+        return response;
     }
 
     public void updateOrder(String orderId, OrderDto orderDto) {
@@ -52,13 +55,12 @@ public class OrderService {
         }
     }
 
-    public void deleteOrder(String orderId) {
+    public Map<String, Object> deleteOrder(String orderId) {
+        Map<String, Object> response = new HashMap<>();
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        optionalOrder.ifPresentOrElse(
-                order -> orderRepository.delete(order),
-                () -> {
-                    throw new RuntimeException("Order with ID " + orderId + " not found.");
-                }
-        );;
+        optionalOrder.ifPresent(order -> orderRepository.delete(order));
+        response.put("EC", 0);
+        response.put("MS", "Deleted order successfully.");
+        return response;
     }
 }

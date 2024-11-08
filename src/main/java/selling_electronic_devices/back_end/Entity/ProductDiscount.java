@@ -15,7 +15,7 @@ public class ProductDiscount {
     @Column(name = "product_discount_id")
     private String productDiscountId;
 
-    @Column(name = "discount_amount")
+    @Column(name = "discount_amount", columnDefinition = "NUMERIC(10, 2)")
     private Double discountAmount;
 
     @Column(name = "expired_date")

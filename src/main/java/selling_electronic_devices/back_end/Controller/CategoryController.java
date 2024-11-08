@@ -6,7 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.CategoryDto;
+import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Service.CategoryService;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/category")
@@ -16,11 +22,16 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody CategoryDto categoryDto) {
+        Map<String, Object> response = new HashMap<>();
         try {
             categoryService.createCategory(categoryDto);
-            return ResponseEntity.ok("Added category successfully.");
+            response.put("EC", 0);
+            response.put("MS", "Created Successfully.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("An error when adding new category.");
+            response.put("EC", 1);
+            response.put("MS", "Error While Creating!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -28,26 +39,42 @@ public class CategoryController {
     public ResponseEntity<?> getAllCategories(
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(categoryService.getAllCategories(offset, limit));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get All Categories Successfully.");
+        response.put("categories", categoryService.getAllCategories(offset, limit));
+        return ResponseEntity.ok(response);
+//        return ResponseEntity.ok(categoryService.getAllCategories(offset, limit));
     }
 
     @PutMapping("/{categoryId}")
     public ResponseEntity<?> updateCategory(@PathVariable String categoryId, @RequestBody CategoryDto categoryDto) {
+        Map<String, Object> response = new HashMap<>();
         try {
             categoryService.updateCategory(categoryId, categoryDto);
-            return ResponseEntity.ok("Updated category successfully.");
+            response.put("EC", 0);
+            response.put("MS", "Updated Successfully.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error while updating category.");
+            response.put("EC", 1);
+            response.put("MS", "Updated Error!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<?> deleteCategory(@PathVariable String categoryId) {
+        Map<String, Object> response = new HashMap<>();
         try {
+            response.put("EC", 0);
+            response.put("MS", "Category deleted successfully.");
             categoryService.deleteCategory(categoryId);
-            return ResponseEntity.ok("Category deleted successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found category with ID: " + categoryId);
+            response.put("EC", 1);
+            response.put("MS", "Error while deleting!");
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 

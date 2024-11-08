@@ -1,14 +1,17 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.ProductReview;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ProductReviewService {
@@ -28,9 +31,21 @@ public class ProductReviewService {
         return "Created rating successfully.";
     }
 
+    public Map<String, Object> getAllProductReviews(int offset, int limit) {
+        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("productReviewId")));
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get all product_reviews successfully.");
+        response.put("orders", productReviewRepository.findAll(pageRequest).getContent());
+        return response;
+    }
 
-    public List<ProductReview> getProductReviewsByProduct(String productId) {
-        return productReviewRepository.findByProductId(productId);
+    public Map<String, Object> getProductReviewsByProduct(String productId) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get product_reviews by productId successfully");
+        response.put("productReviews", productReviewRepository.findByProductId(productId));
+        return response;
     }
 
     public boolean updateProductReview(String productReviewId, ProductReviewDto productReviewDto) {
@@ -57,4 +72,6 @@ public class ProductReviewService {
         }
         return false;
     }
+
+
 }
