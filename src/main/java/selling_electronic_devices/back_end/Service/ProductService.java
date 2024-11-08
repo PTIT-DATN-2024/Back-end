@@ -1,6 +1,7 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -42,13 +43,21 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public List<Product> getAllProducts(int offset, int limit) {
+    public Map<String, Object> getAllProducts(int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.asc("productId")));
-        return productRepository.findAll(pageRequest).getContent();
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get All Products Successfully.");
+        response.put("products", productRepository.findAll(pageRequest).getContent());
+        return response;
     }
 
-    public void deleteProduct(String productId) {
+    public Map<String, Object> deleteProduct(String productId) {
+        Map<String, Object> response = new HashMap<>();
         productRepository.deleteById(productId);
+        response.put("EC", 0);
+        response.put("MS", "Deleted product successfully.");
+        return response;
     }
 
     public void updateProduct(String productId, ProductDto productDto) {
@@ -70,7 +79,7 @@ public class ProductService {
         }
     }
 
-    public String rateProduct(String productId, ProductReviewDto productReviewDto) {
+    public Map<String, Object> rateProduct(String productId, ProductReviewDto productReviewDto) {
         ProductReview productReview = new ProductReview();
         productReview.setProductReviewId(UUID.randomUUID().toString());
         productReview.setProductId(productId);
@@ -80,14 +89,22 @@ public class ProductService {
 
         productReviewRepository.save(productReview);
 
-        return "Successful product reviews";
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Rated successfully.");
+
+        return response;
     }
 
-    public List<Product> searchProduct(String query, int offset, int limit) {
+    public Map<String, Object> searchProduct(String query, int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")));
-        Page<Product> products = productRepository.findBySearchQuery(query, pageRequest);
 
-        return products.getContent();
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Products with query string.");
+        response.put("products", productRepository.findBySearchQuery(query, pageRequest).getContent());
+
+        return response;
     }
 
 

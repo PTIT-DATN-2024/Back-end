@@ -22,7 +22,7 @@ public class Product {
     @Column(name = "total")
     private Long total;
 
-    @Column(name = "rate")
+    @Column(name = "rate", columnDefinition = "NUMERIC(10, 2)")
     private Double rate;
 
     @Column(name = "number_vote")
@@ -31,22 +31,20 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "import_price")
+    @Column(name = "import_price", columnDefinition = "NUMERIC(10, 2)")
     private Double importPrice;
 
-    @Column(name = "selling_price")
+    @Column(name = "selling_price", columnDefinition = "NUMERIC(10, 2)")
     private Double sellingPrice;
 
     @Column(name = "status")
     private String status;
 
-    @Column(name = "create_at")
-    private LocalDateTime createAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "update_at")
-    private LocalDateTime updateAt;
-
-    // Getters and Setters
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public String getProductId() {
         return productId;
@@ -136,19 +134,19 @@ public class Product {
         this.status = status;
     }
 
-    public LocalDateTime getCreateAt() {
-        return createAt;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreateAt(LocalDateTime createAt) {
-        this.createAt = createAt;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdateAt() {
-        return updateAt;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdateAt(LocalDateTime updateAt) {
-        this.updateAt = updateAt;
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

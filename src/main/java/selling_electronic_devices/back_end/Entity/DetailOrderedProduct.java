@@ -19,7 +19,7 @@ public class DetailOrderedProduct {
     @Column(name = "order_id")
     private String orderId;
 
-    @Column(name = "total_price")
+    @Column(name = "total_price", columnDefinition = "NUMERIC(10, 2)")
     private Double totalPrice;
 
     public String getDetailOrderProductId() {
