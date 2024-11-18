@@ -72,13 +72,6 @@ public class ProductController {
         response.put("MS", "Get product by ID successfully.");
         response.put("product", productRepository.findById(productId));
         return ResponseEntity.ok(response);
-//        Optional<Product> productOp = productRepository.findById(productId);
-//        if (productOp.isPresent()) {
-//            Product product = productOp.get();
-//
-//            return ResponseEntity.ok(product);
-//        }
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found product with product ID: " + productId);
     }
 
     @PutMapping("/{productId}")
