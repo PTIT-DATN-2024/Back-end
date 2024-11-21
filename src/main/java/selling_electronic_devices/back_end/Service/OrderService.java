@@ -20,8 +20,8 @@ public class OrderService {
     public void createOrder(OrderDto orderDto) {
         Order order = new Order();
         order.setOrderId(UUID.randomUUID().toString());
-        order.setCustomerId(orderDto.getCustomerId());
-        order.setStaffId(orderDto.getStaffId());
+        order.setCustomer(orderDto.getCustomer());
+        order.setStaff(orderDto.getStaff());
         order.setShipAddress(orderDto.getShipAddress());
         order.setShipFee(orderDto.getShipFee());
         order.setPaymentType(orderDto.getPaymentType());
@@ -44,8 +44,8 @@ public class OrderService {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isPresent()) {
             Order order = optionalOrder.get();
-            order.setCustomerId(orderDto.getCustomerId());
-            order.setStaffId(orderDto.getStaffId());
+            order.setCustomer(orderDto.getCustomer());
+            order.setStaff(orderDto.getStaff());
             order.setShipAddress(orderDto.getShipAddress());
             order.setShipFee(orderDto.getShipFee());
             order.setPaymentType(orderDto.getPaymentType());

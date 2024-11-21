@@ -10,8 +10,9 @@ public class Banner {
     @Column(name = "banner_id")
     private String bannerId;
 
-    @Column(name = "admin_id")
-    private String adminId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id", insertable = false, updatable = false)
+    private Admin admin;
 
     @Column(name = "image", nullable = false)
     private String image;
@@ -33,12 +34,12 @@ public class Banner {
         this.bannerId = bannerId;
     }
 
-    public String getAdminId() {
-        return adminId;
+    public Admin getAdmin() {
+        return admin;
     }
 
-    public void setAdminId(String adminId) {
-        this.adminId = adminId;
+    public void setAdmin(Admin admin) {
+        this.admin = admin;
     }
 
     public String getImage() {

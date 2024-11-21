@@ -1,9 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "product_images")
@@ -13,8 +10,9 @@ public class ProductImage {
     @Column(name = "product_image_id")
     private String productImageId;
 
-    @Column(name = "product_id")
-    private String productId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    private Product product;
 
     @Column(name = "image")
     private String image;
@@ -27,12 +25,12 @@ public class ProductImage {
         this.productImageId = productImageId;
     }
 
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public String getImage() {

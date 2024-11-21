@@ -1,9 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -15,8 +12,9 @@ public class Cart {
     @Column(name = "cart_id")
     private String cartId;
 
-    @Column(name = "customer_id")
-    private String customerId;
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", insertable = true, updatable = false)
+    private Customer customer;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -32,12 +30,12 @@ public class Cart {
         this.cartId = cartId;
     }
 
-    public String getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
     public LocalDateTime getCreatedAt() {

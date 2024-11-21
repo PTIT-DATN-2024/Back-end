@@ -1,10 +1,12 @@
 package selling_electronic_devices.back_end.Dto;
 
 import jakarta.persistence.Column;
+import selling_electronic_devices.back_end.Entity.Category;
+import selling_electronic_devices.back_end.Entity.ProductDiscount;
 
 public class ProductDto {
-    private String categoryId;
-    private String productDiscountId;
+    private Category category;
+    private ProductDiscount productDiscount;
     private String name;
     private Long total;
     private Double rate;
@@ -14,20 +16,20 @@ public class ProductDto {
     private Double sellingPrice;
     private String status;
 
-    public String getCategoryId() {
-        return categoryId;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
-    public String getProductDiscountId() {
-        return productDiscountId;
+    public ProductDiscount getProductDiscount() {
+        return productDiscount;
     }
 
-    public void setProductDiscountId(String productDiscountId) {
-        this.productDiscountId = productDiscountId;
+    public void setProductDiscount(ProductDiscount productDiscount) {
+        this.productDiscount = productDiscount;
     }
 
     public String getName() {
