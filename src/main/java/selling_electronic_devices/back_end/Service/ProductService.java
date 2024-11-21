@@ -29,8 +29,8 @@ public class ProductService {
     public void createProduct(ProductDto productDto) {
         Product product = new Product();
         product.setProductId(UUID.randomUUID().toString());
-        product.setCategoryId(productDto.getCategoryId());
-        product.setProductDiscountId(productDto.getProductDiscountId());
+        product.setCategory(productDto.getCategory());
+        product.setProductDiscount(productDto.getProductDiscount());
         product.setName(productDto.getName());
         product.setTotal(productDto.getTotal());
         product.setRate(productDto.getRate());
@@ -64,8 +64,8 @@ public class ProductService {
         Optional<Product> productOp = productRepository.findById(productId);
         if (productOp.isPresent()) {
             Product product = productOp.get();
-            product.setCategoryId(productDto.getCategoryId());
-            product.setProductDiscountId(productDto.getProductDiscountId());
+            product.setCategory(productDto.getCategory());
+            product.setProductDiscount(productDto.getProductDiscount());
             product.setName(productDto.getName());
             product.setTotal(productDto.getTotal());
             product.setRate(productDto.getRate());
@@ -82,8 +82,8 @@ public class ProductService {
     public Map<String, Object> rateProduct(String productId, ProductReviewDto productReviewDto) {
         ProductReview productReview = new ProductReview();
         productReview.setProductReviewId(UUID.randomUUID().toString());
-        productReview.setProductId(productId);
-        productReview.setCustomerId(productReviewDto.getCustomerId());
+        productReview.setProduct(productReviewDto.getProduct());
+        productReview.setCustomer(productReviewDto.getCustomer());
         productReview.setRating(productReviewDto.getRating());
         productReview.setComment(productReviewDto.getComment());
 

@@ -1,9 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -15,11 +12,13 @@ public class CartDetail {
     @Column(name = "cart_detail_id")
     private String cartDetailId;
 
-    @Column(name = "cart_id")
-    private String cartId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", insertable = false, updatable = false)
+    private Cart cart;
 
-    @Column(name = "product_id")
-    private String productId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    private Product product;
 
     @Column(name = "quantity")
     private String quantity;
@@ -33,25 +32,24 @@ public class CartDetail {
     public String getCartDetailId() {
         return cartDetailId;
     }
-
     public void setCartDetailId(String cartDetailId) {
         this.cartDetailId = cartDetailId;
     }
 
-    public String getCartId() {
-        return cartId;
+    public Cart getCart() {
+        return cart;
     }
 
-    public void setCartId(String cartId) {
-        this.cartId = cartId;
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public String getQuantity() {

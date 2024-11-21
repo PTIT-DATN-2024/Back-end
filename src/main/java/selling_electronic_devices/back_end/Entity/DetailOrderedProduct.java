@@ -1,9 +1,7 @@
 package selling_electronic_devices.back_end.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Fetch;
 
 @Entity
 @Table(name = "detail_ordered_products")
@@ -13,11 +11,13 @@ public class DetailOrderedProduct {
     @Column(name = "detail_order_product_id")
     private String detailOrderProductId;
 
-    @Column(name = "product_id")
-    private String productId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    private Product product;
 
-    @Column(name = "order_id")
-    private String orderId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false)
+    private Order order;
 
     @Column(name = "total_price", columnDefinition = "NUMERIC(10, 2)")
     private Double totalPrice;
@@ -30,20 +30,20 @@ public class DetailOrderedProduct {
         this.detailOrderProductId = detailOrderProductId;
     }
 
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public String getOrderId() {
-        return orderId;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
     public Double getTotalPrice() {

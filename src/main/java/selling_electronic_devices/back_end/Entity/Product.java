@@ -10,11 +10,13 @@ public class Product {
     @Column(name = "product_id")
     private String productId;
 
-    @Column(name = "category_id")
-    private String categoryId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id", insertable = false, updatable = false)
+    private Category category;
 
-    @Column(name = "product_discount_id")
-    private String productDiscountId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_discount_id", referencedColumnName = "product_discount_id", insertable = false, updatable = false)
+    private ProductDiscount productDiscount;
 
     @Column(name = "name")
     private String name;
@@ -54,20 +56,20 @@ public class Product {
         this.productId = productId;
     }
 
-    public String getCategoryId() {
-        return categoryId;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
-    public String getProductDiscountId() {
-        return productDiscountId;
+    public ProductDiscount getProductDiscount() {
+        return productDiscount;
     }
 
-    public void setProductDiscountId(String productDiscountId) {
-        this.productDiscountId = productDiscountId;
+    public void setProductDiscount(ProductDiscount productDiscount) {
+        this.productDiscount = productDiscount;
     }
 
     public String getName() {

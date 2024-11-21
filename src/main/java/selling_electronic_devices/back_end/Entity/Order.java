@@ -11,11 +11,13 @@ public class Order {
     @Column(name = "order_id")
     private String orderId;
 
-    @Column(name = "customer_id")
-    private String customerId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
 
-    @Column(name = "staff_id")
-    private String staffId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "staff_id", referencedColumnName = "staff_id", insertable = false, updatable = false)
+    private Staff staff;
 
     @Column(name = "ship_address")
     private String shipAddress;
@@ -43,20 +45,20 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public String getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public String getStaffId() {
-        return staffId;
+    public Staff getStaff() {
+        return staff;
     }
 
-    public void setStaffId(String staffId) {
-        this.staffId = staffId;
+    public void setStaff(Staff staff) {
+        this.staff = staff;
     }
 
     public String getShipAddress() {

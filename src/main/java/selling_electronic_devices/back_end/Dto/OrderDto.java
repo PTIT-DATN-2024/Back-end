@@ -1,27 +1,30 @@
 package selling_electronic_devices.back_end.Dto;
 
+import selling_electronic_devices.back_end.Entity.Customer;
+import selling_electronic_devices.back_end.Entity.Staff;
+
 public class OrderDto {
-    private String customerId;
-    private String staffId;
+    private Customer customer;
+    private Staff staff;
     private String shipAddress;
     private Double shipFee;
     private String paymentType;
     private String status;
 
-    public String getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public String getStaffId() {
-        return staffId;
+    public Staff getStaff() {
+        return staff;
     }
 
-    public void setStaffId(String staffId) {
-        this.staffId = staffId;
+    public void setStaff(Staff staff) {
+        this.staff = staff;
     }
 
     public String getShipAddress() {

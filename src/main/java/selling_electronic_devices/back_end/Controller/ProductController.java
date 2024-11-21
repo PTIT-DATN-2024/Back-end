@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Entity.Category;
+import selling_electronic_devices.back_end.Repository.CategoryRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Service.ProductService;
 
@@ -23,6 +25,9 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @PostMapping
     public ResponseEntity<?> createProduct(@RequestBody ProductDto productDto) {
@@ -61,7 +66,13 @@ public class ProductController {
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Get products by category successfully.");
-        response.put("products", productRepository.findByCategoryId(categoryId, pageRequest).getContent());
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        if (optionalCategory.isPresent()) {
+            Category category = optionalCategory.get();
+            response.put("products", productRepository.findByCategory(category, pageRequest).getContent());
+        } else  {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found category.");
+        }
         return ResponseEntity.ok(response);
     }
 

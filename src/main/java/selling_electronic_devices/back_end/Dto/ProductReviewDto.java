@@ -1,25 +1,28 @@
 package selling_electronic_devices.back_end.Dto;
 
+import selling_electronic_devices.back_end.Entity.Customer;
+import selling_electronic_devices.back_end.Entity.Product;
+
 public class ProductReviewDto {
-    private String customerId;
-    private String productId;
+    private Customer customer;
+    private Product product;
     private String rating;
     private String comment;
 
-    public String getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public String getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public String getRating() {
