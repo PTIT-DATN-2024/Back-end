@@ -1,9 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -16,8 +13,9 @@ public class Staff {
     @Column(name = "staff_id")
     private String staffId;
 
-    @Column(name = "admin_id")
-    private String adminId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id", insertable = false, updatable = false)
+    private Admin admin;
 
     @Column(name = "username", nullable = false)
     private String username;
@@ -54,12 +52,12 @@ public class Staff {
         this.staffId = staffId;
     }
 
-    public String getAdminId() {
-        return adminId;
+    public Admin getAdmin() {
+        return admin;
     }
 
-    public void setAdminId(String adminId) {
-        this.adminId = adminId;
+    public void setAdmin(Admin admin) {
+        this.admin = admin;
     }
 
     public String getUsername() {

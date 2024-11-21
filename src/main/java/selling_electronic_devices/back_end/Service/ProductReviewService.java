@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Entity.ProductReview;
+import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 
 import java.util.*;
@@ -19,11 +21,14 @@ public class ProductReviewService {
     @Autowired
     private ProductReviewRepository productReviewRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     public String createProductReview(ProductReviewDto productReviewDto) {
         ProductReview productReview = new ProductReview();
         productReview.setProductReviewId(UUID.randomUUID().toString());
-        productReview.setCustomerId(productReviewDto.getCustomerId());
-        productReview.setProductId(productReviewDto.getProductId());
+        productReview.setCustomer(productReviewDto.getCustomer());
+        productReview.setProduct(productReviewDto.getProduct());
         productReview.setRating(productReviewDto.getRating());
         productReview.setComment(productReviewDto.getComment());
 
@@ -44,7 +49,13 @@ public class ProductReviewService {
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Get product_reviews by productId successfully");
-        response.put("productReviews", productReviewRepository.findByProductId(productId));
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if (optionalProduct.isPresent()) {
+            response.put("productReviews", productReviewRepository.findByProduct(optionalProduct.get()));
+        } else {
+            response.put("productReviews", Collections.emptyList());
+            //response.put("productReviews", new ArrayList<>());
+        }
         return response;
     }
 
@@ -52,8 +63,8 @@ public class ProductReviewService {
         Optional<ProductReview> optionalProductReview = productReviewRepository.findById(productReviewId);
         if (optionalProductReview.isPresent()) {
             ProductReview productReview = new ProductReview();
-            productReview.setCustomerId(productReviewDto.getCustomerId());
-            productReview.setProductId(productReviewDto.getProductId());
+            productReview.setCustomer(productReviewDto.getCustomer());
+            productReview.setProduct(productReviewDto.getProduct());
             productReview.setComment(productReviewDto.getComment());
             productReview.setRating(productReviewDto.getRating());
 
