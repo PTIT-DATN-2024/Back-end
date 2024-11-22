@@ -2,7 +2,7 @@ package selling_electronic_devices.back_end.Dto;
 
 public class CategoryDto {
     private String name;
-    private String description;
+    private String avatar;
 
     public String getName() {
         return name;
@@ -12,11 +12,11 @@ public class CategoryDto {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getAvatar() {
+        return avatar;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

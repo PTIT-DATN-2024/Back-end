@@ -29,10 +29,10 @@ public class CustomerService {
             Customer customer = optionalCustomer.get();
             customer.setEmail(customerDto.getEmail());
             customer.setPassword(customerDto.getPassword());
-            customer.setUserName(customerDto.getUserName());
-            customer.setFullName(customerDto.getFullName());
-            customer.setAvatar(customerDto.getAvatar());
+            customer.setAddress(customerDto.getAddress());
             customer.setPhone(customerDto.getPhone());
+            customer.setRole("customer");
+            customer.setAvatar(customerDto.getAvatar());
 
             customerRepository.save(customer);
 
@@ -41,11 +41,12 @@ public class CustomerService {
         return false;
     }
 
-    public boolean deleteUser(String customerId) {
+    public boolean deleteCustomer(String customerId) {
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isPresent()) {
-            optionalCustomer.get().setCustomerId("1");
-//            customerRepository.delete(optionalCustomer.get());
+            Customer customer = optionalCustomer.get();
+            customer.setIsDelete("true");
+            customerRepository.save(customer);
             return true;
         }
         return false;

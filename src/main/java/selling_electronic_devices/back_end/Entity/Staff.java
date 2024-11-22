@@ -14,7 +14,7 @@ public class Staff {
     private String staffId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id", insertable = false, updatable = false)
+    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id")
     private Admin admin;
 
     @Column(name = "username", nullable = false)

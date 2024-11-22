@@ -56,7 +56,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts(offset, limit));
     }
 
-    @GetMapping("/{categoryId}")
+    @GetMapping("/list-products/{categoryId}")
     public ResponseEntity<?> getProductsByCategory(
             @PathVariable String categoryId,
             @RequestParam(defaultValue = "0") int offset,

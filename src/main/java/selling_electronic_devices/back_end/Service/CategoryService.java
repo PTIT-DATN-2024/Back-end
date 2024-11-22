@@ -22,7 +22,7 @@ public class CategoryService {
         Category category = new Category();
         category.setCategoryId(UUID.randomUUID().toString());
         category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
+        category.setAvatar(categoryDto.getAvatar());
 
         categoryRepository.save(category);
     }
@@ -37,7 +37,8 @@ public class CategoryService {
         if (optionalCategory.isPresent()) {
             Category category = optionalCategory.get();
             category.setName(categoryDto.getName());
-            category.setDescription(categoryDto.getDescription());
+            category.setAvatar(categoryDto.getAvatar());
+            categoryRepository.save(category);
         }
     }
 

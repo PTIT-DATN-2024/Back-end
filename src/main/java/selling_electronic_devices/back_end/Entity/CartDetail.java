@@ -13,11 +13,11 @@ public class CartDetail {
     private String cartDetailId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cart_id", referencedColumnName = "cart_id", insertable = false, updatable = false)
+    @JoinColumn(name = "cart_id", referencedColumnName = "cart_id")
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
 
     @Column(name = "quantity")

@@ -3,10 +3,10 @@ package selling_electronic_devices.back_end.Dto;
 public class CustomerDto {
     private String email;
     private String password;
-    private String userName;
-    private String fullName;
-    private String avatar;
+    private String address;
     private String phone;
+    private String role;
+    private String avatar;
 
     public String getEmail() {
         return email;
@@ -24,28 +24,12 @@ public class CustomerDto {
         this.password = password;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getAddress() {
+        return address;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getPhone() {
@@ -54,5 +38,21 @@ public class CustomerDto {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }

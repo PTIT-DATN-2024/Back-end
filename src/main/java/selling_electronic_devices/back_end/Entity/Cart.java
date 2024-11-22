@@ -13,7 +13,7 @@ public class Cart {
     private String cartId;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", insertable = true, updatable = false)
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customer;
 
     @Column(name = "created_at")

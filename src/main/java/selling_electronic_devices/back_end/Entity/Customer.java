@@ -25,6 +25,12 @@ public class Customer {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "role")
+    private String role;
+
     @Column(name = "avatar")
     private String avatar;
 
@@ -78,6 +84,22 @@ public class Customer {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getAvatar() {

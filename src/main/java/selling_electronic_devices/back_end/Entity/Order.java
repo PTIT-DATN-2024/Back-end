@@ -1,4 +1,5 @@
 package selling_electronic_devices.back_end.Entity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,18 +13,22 @@ public class Order {
     private String orderId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", insertable = false, updatable = false)
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "staff_id", referencedColumnName = "staff_id", insertable = false, updatable = false)
+    @JoinColumn(name = "staff_id", referencedColumnName = "staff_id")
     private Staff staff;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("order") // bỏ qua field "order" khi serialization DetailOrderedProduct
+    private List<DetailOrderedProduct> detailOrderedProducts;
 
     @Column(name = "ship_address")
     private String shipAddress;
 
-    @Column(name = "ship_fee", columnDefinition = "NUMERIC(10, 2)")
-    private Double shipFee;
+    @Column(name = "total", columnDefinition = "NUMERIC(10, 2)")
+    private Double total;
 
     @Column(name = "payment_type")
     private String paymentType;
@@ -69,12 +74,20 @@ public class Order {
         this.shipAddress = shipAddress;
     }
 
-    public Double getShipFee() {
-        return shipFee;
+    public List<DetailOrderedProduct> getDetailOrderedProducts() {
+        return detailOrderedProducts;
     }
 
-    public void setShipFee(Double shipFee) {
-        this.shipFee = shipFee;
+    public void setDetailOrderedProducts(List<DetailOrderedProduct> detailOrderedProducts) {
+        this.detailOrderedProducts = detailOrderedProducts;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
     }
 
     public String getPaymentType() {

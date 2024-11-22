@@ -1,4 +1,8 @@
 package selling_electronic_devices.back_end.Entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -11,11 +15,14 @@ public class Product {
     private String productId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "category_id", referencedColumnName = "category_id", insertable = false, updatable = false)
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id")
+    //@JsonIgnore
+    //@JsonBackReference // chỉ định đây là phía con của relationship
+    @JsonIgnoreProperties("products") // Bỏ qua field 'products' (List<Product>) khi serialization Product
     private Category category;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_discount_id", referencedColumnName = "product_discount_id", insertable = false, updatable = false)
+    @JoinColumn(name = "product_discount_id", referencedColumnName = "product_discount_id")
     private ProductDiscount productDiscount;
 
     @Column(name = "name")
@@ -42,11 +49,18 @@ public class Product {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "weight")
+    private String weight;
+
+    @Column(name = "present_image")
+    private String presentImage;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
 
     public String getProductId() {
         return productId;
@@ -134,6 +148,22 @@ public class Product {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
+    }
+
+    public String getPresentImage() {
+        return presentImage;
+    }
+
+    public void setPresentImage(String presentImage) {
+        this.presentImage = presentImage;
     }
 
     public LocalDateTime getCreatedAt() {

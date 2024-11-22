@@ -9,8 +9,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Entity.ProductReview;
+import selling_electronic_devices.back_end.Repository.CategoryRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 import java.util.*;
@@ -21,26 +23,33 @@ public class ProductService {
     private ProductRepository productRepository;
     @Autowired
     private ProductReviewRepository productReviewRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
 
     public void createProduct(ProductDto productDto) {
-        Product product = new Product();
-        product.setProductId(UUID.randomUUID().toString());
-        product.setCategory(productDto.getCategory());
-        product.setProductDiscount(productDto.getProductDiscount());
-        product.setName(productDto.getName());
-        product.setTotal(productDto.getTotal());
-        product.setRate(productDto.getRate());
-        product.setNumberVote(productDto.getNumberVote());
-        product.setDescription(productDto.getDescription());
-        product.setImportPrice(productDto.getImportPrice());
-        product.setSellingPrice(productDto.getSellingPrice());
-        product.setStatus(product.getStatus());
+        Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
+        if (optionalCategory.isPresent()) {
+            Product product = new Product();
+            product.setProductId(UUID.randomUUID().toString());
+            product.setCategory(optionalCategory.get());
+            product.setProductDiscount(null);
+            product.setName(productDto.getName());
+            product.setTotal(productDto.getTotal());
+            product.setRate(4.5);
+            product.setNumberVote(19L);
+            product.setWeight(productDto.getWeight());
+            product.setPresentImage(productDto.getPresentImage());
+            product.setDescription(productDto.getDescription());
+            product.setImportPrice(productDto.getImportPrice());
+            product.setSellingPrice(productDto.getSellingPrice());
+            product.setStatus("available");
 
-        productRepository.save(product);
+            productRepository.save(product);
+        }
     }
 
     public Map<String, Object> getAllProducts(int offset, int limit) {
@@ -62,14 +71,17 @@ public class ProductService {
 
     public void updateProduct(String productId, ProductDto productDto) {
         Optional<Product> productOp = productRepository.findById(productId);
-        if (productOp.isPresent()) {
+        Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
+        if (productOp.isPresent() && optionalCategory.isPresent()) {
             Product product = productOp.get();
-            product.setCategory(productDto.getCategory());
-            product.setProductDiscount(productDto.getProductDiscount());
+            product.setCategory(optionalCategory.get());
+//            product.setProductDiscount(productDto.getProductDiscount());
             product.setName(productDto.getName());
             product.setTotal(productDto.getTotal());
-            product.setRate(productDto.getRate());
-            product.setNumberVote(productDto.getNumberVote());
+            product.setRate(4.5);
+            product.setNumberVote(19L);
+            product.setWeight(productDto.getWeight());
+            product.setPresentImage(productDto.getPresentImage());
             product.setDescription(productDto.getDescription());
             product.setImportPrice(productDto.getImportPrice());
             product.setSellingPrice(productDto.getSellingPrice());
