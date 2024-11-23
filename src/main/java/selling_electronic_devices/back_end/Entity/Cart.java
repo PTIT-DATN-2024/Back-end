@@ -1,8 +1,10 @@
 package selling_electronic_devices.back_end.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "carts")
@@ -13,8 +15,12 @@ public class Cart {
     private String cartId;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", insertable = true, updatable = false)
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customer;
+
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("cart")
+    private List<CartDetail> cartDetails;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -36,6 +42,14 @@ public class Cart {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public List<CartDetail> getCartDetails() {
+        return cartDetails;
+    }
+
+    public void setCartDetails(List<CartDetail> cartDetails) {
+        this.cartDetails = cartDetails;
     }
 
     public LocalDateTime getCreatedAt() {

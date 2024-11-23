@@ -11,7 +11,7 @@ public class ProductImage {
     private String productImageId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
 
     @Column(name = "image")

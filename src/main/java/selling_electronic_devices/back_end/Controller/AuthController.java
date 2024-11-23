@@ -17,6 +17,7 @@ import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Jwt.JwtUtil;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ public class AuthController {
     private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));
         } catch (Exception e) {
@@ -54,14 +55,18 @@ public class AuthController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        LoginResponse loginResponse = new LoginResponse(jwt, customer.getCustomerId());
-        return ResponseEntity.ok(loginResponse); // trả về object chứa: jwt + customerId.
+        LoginResponse loginResponse = new LoginResponse(jwt, customer.getCustomerId(), authenticationRequest.getEmail(), "customer", "1728958738001.jpg");
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Login Successfully.");
+        response.put("user", loginResponse);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
         if (customerRepository.findByEmail(signupRequest.getEmail()) != null){
-            return "Email already exists!";
+            return ResponseEntity.status(HttpStatus.CREATED).body("Email already exists.");
         }
 
         // Tạo mới nếu email chưa tồn tại
@@ -69,15 +74,20 @@ public class AuthController {
         customer.setCustomerId(UUID.randomUUID().toString());
         customer.setEmail(signupRequest.getEmail());
         customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        customer.setUserName(signupRequest.getUserName());
-        customer.setFullName(signupRequest.getFullName());
+        customer.setUserName("name" + System.currentTimeMillis());
+        customer.setFullName("full_name" + System.currentTimeMillis());
+        customer.setAddress("Ha Noi");
+        customer.setRole("customer");
         customer.setAvatar(signupRequest.getAvatar());
         customer.setPhone(signupRequest.getPhone());
-        customer.setIsDelete("0");
+        customer.setIsDelete("false");
 
         customerRepository.save(customer);
 
-        return "Registered successfully.";
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Signup Successfully.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")

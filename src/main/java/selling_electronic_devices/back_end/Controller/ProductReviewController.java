@@ -26,7 +26,7 @@ public class ProductReviewController {
         try {
             productReviewService.createProductReview(productReviewDto);
             response.put("EC", 0);
-            response.put("MS", "Created successfully.");
+            response.put("MS", "Successfully added Comment and updated review!");
             return ResponseEntity.ok(response);
         } catch (DataAccessException e) {
             response.put("EC", 1);
@@ -66,7 +66,7 @@ public class ProductReviewController {
             boolean isUpdated = productReviewService.updateProductReview(productReviewId, productReviewDto);
             if (isUpdated) {
                 response.put("EC", 0);
-                response.put("MS", "Get productReview by ID successfully.");
+                response.put("MS", "Updated productReview successfully.");
                 return ResponseEntity.ok(response);
             } else {
                 response.put("EC", 1);
