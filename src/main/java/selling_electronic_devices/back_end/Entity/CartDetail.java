@@ -1,5 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class CartDetail {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cart_id", referencedColumnName = "cart_id")
+    @JsonIgnoreProperties("cartDetails")
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -21,7 +23,10 @@ public class CartDetail {
     private Product product;
 
     @Column(name = "quantity")
-    private String quantity;
+    private Long quantity;
+
+    @Column(name = "total_price", columnDefinition = "NUMERIC(10, 2)")
+    private Double totalPrice;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -52,12 +57,20 @@ public class CartDetail {
         this.product = product;
     }
 
-    public String getQuantity() {
+    public Long getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 
     public LocalDateTime getCreatedAt() {

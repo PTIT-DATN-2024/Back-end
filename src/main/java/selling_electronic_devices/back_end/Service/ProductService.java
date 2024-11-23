@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.Category;
+import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Entity.ProductReview;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
@@ -91,22 +92,23 @@ public class ProductService {
         }
     }
 
-    public Map<String, Object> rateProduct(String productId, ProductReviewDto productReviewDto) {
-        ProductReview productReview = new ProductReview();
-        productReview.setProductReviewId(UUID.randomUUID().toString());
-        productReview.setProduct(productReviewDto.getProduct());
-        productReview.setCustomer(productReviewDto.getCustomer());
-        productReview.setRating(productReviewDto.getRating());
-        productReview.setComment(productReviewDto.getComment());
-
-        productReviewRepository.save(productReview);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("EC", 0);
-        response.put("MS", "Rated successfully.");
-
-        return response;
-    }
+//    public Map<String, Object> rateProduct(String productId, ProductReviewDto productReviewDto) {
+//        ProductReview productReview = new ProductReview();
+//        Optional<Customer> optionalCustomer = customerRepository.findById(productReviewDto.getCustomerId());
+//        Optional<Product> optionalProduct = productRepository.findById(productReviewDto.getProductId());
+//        productReview.setCustomer(optionalCustomer.orElseGet(null));
+//        productReview.setProduct(optionalProduct.orElseGet(null));
+//        productReview.setComment(productReviewDto.getComment());
+//        productReview.setRating(productReviewDto.getRating());
+//
+//        productReviewRepository.save(productReview);
+//
+//        Map<String, Object> response = new HashMap<>();
+//        response.put("EC", 0);
+//        response.put("MS", "Rated successfully.");
+//
+//        return response;
+//    }
 
     public Map<String, Object> searchProduct(String query, int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")));

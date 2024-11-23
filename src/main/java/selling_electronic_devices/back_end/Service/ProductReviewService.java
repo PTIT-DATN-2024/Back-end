@@ -2,14 +2,17 @@ package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Entity.ProductReview;
+import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 
@@ -24,11 +27,17 @@ public class ProductReviewService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     public String createProductReview(ProductReviewDto productReviewDto) {
         ProductReview productReview = new ProductReview();
         productReview.setProductReviewId(UUID.randomUUID().toString());
-        productReview.setCustomer(productReviewDto.getCustomer());
-        productReview.setProduct(productReviewDto.getProduct());
+        Optional<Customer> optionalCustomer = customerRepository.findById(productReviewDto.getCustomerId());
+        Optional<Product> optionalProduct = productRepository.findById(productReviewDto.getProductId());
+        //optionalCustomer.ifPresent(productReview::setCustomer);
+        productReview.setCustomer(optionalCustomer.orElseGet(null));
+        productReview.setProduct(optionalProduct.orElseGet(null));
         productReview.setRating(productReviewDto.getRating());
         productReview.setComment(productReviewDto.getComment());
 
@@ -41,7 +50,17 @@ public class ProductReviewService {
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Get all product_reviews successfully.");
-        response.put("orders", productReviewRepository.findAll(pageRequest).getContent());
+        response.put("productReview", productReviewRepository.findAll(pageRequest).getContent());
+        return response;
+    }
+
+    public Map<String, Object> getAllReviewOfProduct(String productId, int offset, int limit) {
+        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("productReviewId")));
+        Map<String, Object> response = new HashMap<>();
+        response.put("EC", 0);
+        response.put("MS", "Get all review of Product.");
+        response.put("reviews", productReviewRepository.findByProduct(productRepository.findById(productId).orElseGet(null)));
+
         return response;
     }
 
@@ -53,8 +72,8 @@ public class ProductReviewService {
         if (optionalProduct.isPresent()) {
             response.put("productReviews", productReviewRepository.findByProduct(optionalProduct.get()));
         } else {
-            response.put("productReviews", Collections.emptyList());
-            //response.put("productReviews", new ArrayList<>());
+            //response.put("productReviews", Collections.emptyList());
+            response.put("productReviews", new ArrayList<>());
         }
         return response;
     }
@@ -62,9 +81,11 @@ public class ProductReviewService {
     public boolean updateProductReview(String productReviewId, ProductReviewDto productReviewDto) {
         Optional<ProductReview> optionalProductReview = productReviewRepository.findById(productReviewId);
         if (optionalProductReview.isPresent()) {
-            ProductReview productReview = new ProductReview();
-            productReview.setCustomer(productReviewDto.getCustomer());
-            productReview.setProduct(productReviewDto.getProduct());
+            ProductReview productReview = optionalProductReview.get();
+            Optional<Customer> optionalCustomer = customerRepository.findById(productReviewDto.getCustomerId());
+            Optional<Product> optionalProduct = productRepository.findById(productReviewDto.getProductId());
+            productReview.setCustomer(optionalCustomer.orElseGet(null));
+            productReview.setProduct(optionalProduct.orElseGet(null));
             productReview.setComment(productReviewDto.getComment());
             productReview.setRating(productReviewDto.getRating());
 

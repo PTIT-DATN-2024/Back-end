@@ -4,25 +4,25 @@ import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Entity.Product;
 
 public class ProductReviewDto {
-    private Customer customer;
-    private Product product;
+    private String customerId;
+    private String productId;
     private String rating;
     private String comment;
 
-    public Customer getCustomer() {
-        return customer;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
-    public Product getProduct() {
-        return product;
+    public String getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
     public String getRating() {

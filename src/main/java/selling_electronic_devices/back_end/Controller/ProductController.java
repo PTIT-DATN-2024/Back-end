@@ -113,15 +113,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.searchProduct(query, offset, limit));
     }
 
-    @PostMapping("/rateProduct/{productId}")
-    public ResponseEntity<?> rateProduct(@PathVariable String productId, @RequestBody ProductReviewDto productReviewDto) {
-        try {
-            return ResponseEntity.ok(productService.rateProduct(productId, productReviewDto));
-        } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("EC", 1);
-            response.put("MS", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
+//    @PostMapping("/rateProduct/{productId}")
+//    public ResponseEntity<?> rateProduct(@PathVariable String productId, @RequestBody ProductReviewDto productReviewDto) {
+//        try {
+//            return ResponseEntity.ok(productService.rateProduct(productId, productReviewDto));
+//        } catch (Exception e) {
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("EC", 1);
+//            response.put("MS", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//        }
+//    }
 }
