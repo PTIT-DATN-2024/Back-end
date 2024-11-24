@@ -47,18 +47,21 @@ public class OrderService {
             orderRepository.save(order);
 
             // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
-            List<CartDetailDto> items = orderDto.getCartDetails();
-            for(CartDetailDto item : items) {
+            //List<CartDetailDto> items = orderDto.getCartDetails();
+            List<CartDetail> items = orderDto.getCartDetails();
+            for(CartDetail item : items) {
                 DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
                 detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
                 detailOrderedProduct.setOrder(order);
-                Optional<Product> optionalProduct = productRepository.findById(item.getProductId());
+                //Optional<Product> optionalProduct = productRepository.findById(item.getProductId());
 //                if (optionalProduct.isPresent()) {
 //                    detailOrderedProduct.setProduct(optionalProduct.get());
 //                } else {
 //                    detailOrderedProduct.setProduct(null);
 //                }
-                detailOrderedProduct.setProduct(optionalProduct.orElseGet(null));
+                //optionalProduct.ifPresent(detailOrderedProduct::setProduct);
+                detailOrderedProduct.setProduct(item.getProduct());
+                //detailOrderedProduct.setProduct(optionalProduct.orElseGet(null));
                 detailOrderedProduct.setQuantity(item.getQuantity());
                 detailOrderedProduct.setTotalPrice(item.getTotalPrice());
 
@@ -79,7 +82,7 @@ public class OrderService {
         return response;
     }
 
-    public void updateOrder(String orderId, OrderDto orderDto) {
+    /**public void updateOrder(String orderId, OrderDto orderDto) {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
         Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
@@ -95,6 +98,14 @@ public class OrderService {
 
             orderRepository.save(order);
         }
+    }*/
+
+    public void updateOrder(String orderId, String status) {
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        optionalOrder.ifPresent(order -> {
+            order.setStatus(status);
+            orderRepository.save(order);
+        });
     }
 
     public Map<String, Object> deleteOrder(String orderId) {

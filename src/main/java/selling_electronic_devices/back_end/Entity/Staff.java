@@ -38,6 +38,9 @@ public class Staff {
     @Column(name = "is_delete")
     private String isDelete;
 
+    @Column(name = "role")
+    private String role;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -114,6 +117,14 @@ public class Staff {
 
     public void setIsDelete(String isDelete) {
         this.isDelete = isDelete;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public LocalDateTime getCreatedAt() {

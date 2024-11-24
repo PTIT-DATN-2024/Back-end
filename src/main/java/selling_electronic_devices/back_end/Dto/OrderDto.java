@@ -1,11 +1,14 @@
 package selling_electronic_devices.back_end.Dto;
 
+import selling_electronic_devices.back_end.Entity.CartDetail;
+
 import java.util.List;
 
 public class OrderDto {
     private String customerId;
     private String staffId;
-    private List<CartDetailDto> cartDetails;
+    //private List<CartDetailDto> cartDetails;
+    private List<CartDetail> cartDetails;
     private Double total;
 
     public String getCustomerId() {
@@ -24,11 +27,11 @@ public class OrderDto {
         this.staffId = staffId;
     }
 
-    public List<CartDetailDto> getCartDetails() {
+    public List<CartDetail> getCartDetails() {
         return cartDetails;
     }
 
-    public void setCartDetails(List<CartDetailDto> cartDetails) {
+    public void setCartDetails(List<CartDetail> cartDetails) {
         this.cartDetails = cartDetails;
     }
 
