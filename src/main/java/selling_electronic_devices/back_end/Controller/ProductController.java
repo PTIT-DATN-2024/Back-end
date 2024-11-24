@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.ProductDto;
-import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
@@ -64,16 +63,20 @@ public class ProductController {
 
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")));
         Map<String, Object> response = new HashMap<>();
-        response.put("EC", 0);
-        response.put("MS", "Get products by category successfully.");
+
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
         if (optionalCategory.isPresent()) {
+            response.put("EC", 0);
+            response.put("MS", "Get products by category successfully.");
             Category category = optionalCategory.get();
             response.put("products", productRepository.findByCategory(category, pageRequest).getContent());
+
+            return ResponseEntity.ok(response);
         } else  {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found category.");
+            response.put("EC", 1);
+            response.put("MS", "Error Getting products by category.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}")

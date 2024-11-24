@@ -79,11 +79,27 @@ public class OrderController {
         });
     }
 
-    @PutMapping("/{orderId}")
+    //*@PutMapping("/{orderId}")
+    /**
     public ResponseEntity<?> updateOrder(@PathVariable String orderId, @RequestBody OrderDto orderDto) {
         Map<String, Object> response = new HashMap<>();
         try {
             orderService.updateOrder(orderId, orderDto);
+            response.put("EC", 0);
+            response.put("MS", "Updated successfully.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("EC", 1);
+            response.put("MS", "Error while updating!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }*/
+
+    @PutMapping("/{orderId}")
+    public ResponseEntity<?> updateOrder(@PathVariable String orderId, @RequestParam String status) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            orderService.updateOrder(orderId, status);
             response.put("EC", 0);
             response.put("MS", "Updated successfully.");
             return ResponseEntity.ok(response);

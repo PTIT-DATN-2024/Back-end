@@ -18,7 +18,7 @@ public class Product {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     //@JsonIgnore
     //@JsonBackReference // chỉ định đây là phía con của relationship
-    @JsonIgnoreProperties("products") // Bỏ qua field 'products' (List<Product>) khi serialization Product
+    @JsonIgnoreProperties("products") // Bỏ qua field 'products' của Category (List<Product>) khi serialization Product
     private Category category;
 
     @ManyToOne(fetch = FetchType.EAGER)
