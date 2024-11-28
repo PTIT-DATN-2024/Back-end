@@ -32,7 +32,7 @@ public class CustomerController {
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Get all users success!");
-        response.put("customers", customerService.getAllCustomers(offset, limit));
+        response.put("users", customerService.getAllUsers(offset, limit));
         return ResponseEntity.ok(response);
     }
 
