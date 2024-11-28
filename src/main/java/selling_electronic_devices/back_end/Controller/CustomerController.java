@@ -27,7 +27,7 @@ public class CustomerController {
     @GetMapping
     public ResponseEntity<?> getAllUsers(
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
@@ -76,9 +76,10 @@ public class CustomerController {
         }
     }
 
-    @DeleteMapping("/{customerId}")
+    @DeleteMapping("/customer/{customerId}")
     public ResponseEntity<?> deleteUser(@PathVariable String customerId) {
         Map<String, Object> response = new HashMap<>();
+
         try {
             boolean isDeleted = customerService.deleteCustomer(customerId);
             if (isDeleted) {
@@ -88,6 +89,29 @@ public class CustomerController {
             } else {
                 response.put("EC", 1);
                 response.put("MS", "Not found to delete!");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("EC", 2);
+            response.put("MS", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @DeleteMapping("/staff/{staffId}")
+    public ResponseEntity<?> deleteStaff(@PathVariable String staffId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            boolean isDeleted = customerService.deleteStaff(staffId);
+            if (isDeleted) {
+                response.put("EC", 0);
+                response.put("MS", "Deleted staff successfully.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Not found.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
         } catch (Exception e) {

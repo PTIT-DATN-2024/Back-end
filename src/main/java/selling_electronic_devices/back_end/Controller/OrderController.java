@@ -48,7 +48,7 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<?> getAllOrders(
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         return ResponseEntity.ok(orderService.getAllOrders(offset, limit));
     }

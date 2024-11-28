@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
@@ -29,10 +30,10 @@ public class ProductController {
     private CategoryRepository categoryRepository;
 
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody ProductDto productDto) {
+    public ResponseEntity<?> createProduct(@RequestBody ProductDto productDto, @RequestParam MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
         try {
-            productService.createProduct(productDto);
+            productService.createProduct(productDto, avatar);
             response.put("EC", 0);
             response.put("MS", "Created product successfully.");
             return ResponseEntity.ok(response);
@@ -50,7 +51,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> getAllProducts (
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         return ResponseEntity.ok(productService.getAllProducts(offset, limit));
     }
@@ -59,7 +60,7 @@ public class ProductController {
     public ResponseEntity<?> getProductsByCategory(
             @PathVariable String categoryId,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")));
         Map<String, Object> response = new HashMap<>();
@@ -89,9 +90,9 @@ public class ProductController {
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<?> updateProduct(@PathVariable String productId, @RequestBody ProductDto productDto) {
+    public ResponseEntity<?> updateProduct(@PathVariable String productId, @RequestBody ProductDto productDto, @RequestParam MultipartFile avatar) {
         try {
-            productService.updateProduct(productId, productDto);
+            productService.updateProduct(productId, productDto, avatar);
             return ResponseEntity.ok("Updated successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No products found with ID " + productId + " to update.");

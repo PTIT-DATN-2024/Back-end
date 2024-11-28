@@ -7,15 +7,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
-import selling_electronic_devices.back_end.Entity.Category;
-import selling_electronic_devices.back_end.Entity.Customer;
-import selling_electronic_devices.back_end.Entity.Product;
-import selling_electronic_devices.back_end.Entity.ProductReview;
+import selling_electronic_devices.back_end.Entity.*;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
+import selling_electronic_devices.back_end.Repository.ProductImageRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -26,12 +28,14 @@ public class ProductService {
     private ProductReviewRepository productReviewRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private ProductImageRepository productImageRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
 
-    public void createProduct(ProductDto productDto) {
+    public void createProduct(ProductDto productDto, MultipartFile avatar) {//, MultipartFile avatar1, MultipartFile avatar2) {
         Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
         if (optionalCategory.isPresent()) {
             Product product = new Product();
@@ -48,6 +52,25 @@ public class ProductService {
             product.setImportPrice(productDto.getImportPrice());
             product.setSellingPrice(productDto.getSellingPrice());
             product.setStatus("available");
+
+            // Lưu ảnh vào ProductImage
+            ProductImage productImage = new ProductImage();
+            productImage.setProductImageId(UUID.randomUUID().toString());
+            productImage.setProduct(product);
+
+            // lưu ảnh
+            String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
+            File avtFile = new File(avtPath);
+
+            try {
+                avatar.transferTo(avtFile);
+                String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+                productImage.setImage(urlAvtDb);
+
+                productImageRepository.save(productImage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             productRepository.save(product);
         }
@@ -70,7 +93,7 @@ public class ProductService {
         return response;
     }
 
-    public void updateProduct(String productId, ProductDto productDto) {
+    public void updateProduct(String productId, ProductDto productDto, MultipartFile avatar) {
         Optional<Product> productOp = productRepository.findById(productId);
         Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
         if (productOp.isPresent() && optionalCategory.isPresent()) {
@@ -87,6 +110,27 @@ public class ProductService {
             product.setImportPrice(productDto.getImportPrice());
             product.setSellingPrice(productDto.getSellingPrice());
             product.setStatus(product.getStatus());
+
+            if (avatar != null && avatar.isEmpty()) {
+                String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
+                File avtFile = new File(avtPath);
+
+                try {
+                    avatar.transferTo(avtFile);
+                    String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+
+                    // lưu vào Product Image
+                    Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
+                    optionalProductImage.ifPresent(productImage -> {
+                        ProductImage changeImage = optionalProductImage.get();
+                        changeImage.setImage(urlAvtDb);
+
+                        productImageRepository.save(changeImage);
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
             productRepository.save(product);
         }

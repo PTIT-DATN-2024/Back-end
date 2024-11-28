@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.CategoryDto;
 import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Service.CategoryService;
@@ -21,10 +22,10 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<?> createCategory(@RequestBody CategoryDto categoryDto, @RequestParam MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
         try {
-            categoryService.createCategory(categoryDto);
+            categoryService.createCategory(categoryDto, avatar);
             response.put("EC", 0);
             response.put("MS", "Created Successfully.");
             return ResponseEntity.ok(response);
@@ -38,7 +39,7 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<?> getAllCategories(
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
@@ -49,10 +50,10 @@ public class CategoryController {
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<?> updateCategory(@PathVariable String categoryId, @RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<?> updateCategory(@PathVariable String categoryId, @RequestBody CategoryDto categoryDto, @RequestParam MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
         try {
-            categoryService.updateCategory(categoryId, categoryDto);
+            categoryService.updateCategory(categoryId, categoryDto, avatar);
             response.put("EC", 0);
             response.put("MS", "Updated Successfully.");
             return ResponseEntity.ok(response);
