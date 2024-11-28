@@ -1,5 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -12,6 +13,7 @@ public class ProductImage {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", referencedColumnName = "product_id")
+    @JsonIgnoreProperties("productImages")
     private Product product;
 
     @Column(name = "image")

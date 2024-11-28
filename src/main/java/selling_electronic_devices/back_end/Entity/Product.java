@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -24,6 +25,10 @@ public class Product {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_discount_id", referencedColumnName = "product_discount_id")
     private ProductDiscount productDiscount;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("product")
+    private List<ProductImage> productImages;
 
     @Column(name = "name")
     private String name;
@@ -84,6 +89,14 @@ public class Product {
 
     public void setProductDiscount(ProductDiscount productDiscount) {
         this.productDiscount = productDiscount;
+    }
+
+    public List<ProductImage> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<ProductImage> productImages) {
+        this.productImages = productImages;
     }
 
     public String getName() {
