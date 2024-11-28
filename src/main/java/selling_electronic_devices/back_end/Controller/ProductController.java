@@ -50,7 +50,7 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> getAllProducts (
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         return ResponseEntity.ok(productService.getAllProducts(offset, limit));
     }
@@ -59,7 +59,7 @@ public class ProductController {
     public ResponseEntity<?> getProductsByCategory(
             @PathVariable String categoryId,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("createdAt")));
         Map<String, Object> response = new HashMap<>();

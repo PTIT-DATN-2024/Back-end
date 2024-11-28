@@ -49,7 +49,7 @@ public class CartController {
     public ResponseEntity<?> getAllCartDetails(
             @PathVariable String customerId,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         Cart cart = cartRepository.findByCustomer(customerRepository.findById(customerId).orElseGet(null));
 

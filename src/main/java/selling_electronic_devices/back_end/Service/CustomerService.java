@@ -64,4 +64,12 @@ public class CustomerService {
         }
         return false;
     }
+
+    public boolean deleteStaff(String staffId) {
+        Optional<Staff> optionalStaff = staffRepository.findById(staffId);
+        return optionalStaff.map(staff -> {
+            optionalStaff.get().setIsDelete("True");
+            return true;
+        }).orElseGet(() -> false);
+    }
 }

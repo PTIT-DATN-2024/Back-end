@@ -42,7 +42,7 @@ public class ProductReviewController {
     @GetMapping
     public ResponseEntity<?> getAllProductReviews(
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10000") int limit) {
 
         return ResponseEntity.ok(productReviewService.getAllProductReviews(offset, limit));
     }
