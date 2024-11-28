@@ -8,10 +8,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import selling_electronic_devices.back_end.Dto.ProductReviewDto;
+import selling_electronic_devices.back_end.Entity.CartDetail;
 import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Entity.Product;
 import selling_electronic_devices.back_end.Entity.ProductReview;
+import selling_electronic_devices.back_end.Repository.CartDetailRepository;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
@@ -29,6 +32,9 @@ public class ProductReviewService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private CartDetailRepository cartDetailRepository;
 
     public String createProductReview(ProductReviewDto productReviewDto) {
         ProductReview productReview = new ProductReview();
@@ -104,6 +110,5 @@ public class ProductReviewService {
         }
         return false;
     }
-
 
 }

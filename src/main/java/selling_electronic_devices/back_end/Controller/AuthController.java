@@ -60,7 +60,7 @@ public class AuthController {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));
         } catch (Exception e) {
-            throw new Exception("INVALID_CREDENTIALS", e);
+            throw new Exception("INVALID_CREDENTIALS ", e);
         }
 
         // Tìm customer
@@ -132,7 +132,7 @@ public class AuthController {
                 staff.setUsername("name" + System.currentTimeMillis());
                 staff.setFullName("staff" + System.currentTimeMillis());
 //            staff.setAddress("Ha Noi");
-                staff.setRole("customer");
+                staff.setRole("STAFF");
                 staff.setAvatar(signupRequest.getAvatar());
                 staff.setPhone(signupRequest.getPhone());
                 staff.setIsDelete("false");
@@ -155,7 +155,7 @@ public class AuthController {
                 customer.setUserName("CUS" + System.currentTimeMillis());
                 customer.setFullName("customer" + System.currentTimeMillis());
                 customer.setAddress("Ha Noi");
-                customer.setRole("customer");
+                customer.setRole("CUSTOMER");
                 customer.setAvatar(signupRequest.getAvatar());
                 customer.setPhone(signupRequest.getPhone());
                 customer.setIsDelete("false");

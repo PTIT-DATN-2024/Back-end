@@ -13,12 +13,12 @@ public class CartDetail {
     @Column(name = "cart_detail_id")
     private String cartDetailId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)//, cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id", referencedColumnName = "cart_id")
     @JsonIgnoreProperties("cartDetails")
     private Cart cart;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)//, cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private Product product;
 

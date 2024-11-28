@@ -6,8 +6,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import selling_electronic_devices.back_end.Dto.CustomerDto;
 import selling_electronic_devices.back_end.Entity.Customer;
+import selling_electronic_devices.back_end.Entity.Staff;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
+import selling_electronic_devices.back_end.Repository.StaffRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,10 +20,20 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public List<Customer> getAllCustomers(int offset, int limit) {
-        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("customerId")));
+    @Autowired
+    private StaffRepository staffRepository;
 
-        return customerRepository.findAll(pageRequest).getContent();
+    public List<?> getAllUsers(int offset, int limit) {
+        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("isDelete")));
+
+        List<Staff> staffList = staffRepository.findAll(pageRequest).getContent();
+        List<Customer> customerList = customerRepository.findAll(pageRequest).getContent();
+
+        List<Object> users = new ArrayList<>();
+        users.addAll(staffList);
+        users.addAll(customerList);
+
+        return users;
     }
 
     public boolean updateCustomer(String customerId, CustomerDto customerDto) {

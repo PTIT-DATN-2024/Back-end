@@ -31,23 +31,22 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         //Tìm tài xế theo email trong cơ sở dữ liệu
         Customer customer = customerRepository.findByEmail(email);
-
-        if(customer == null) {
-            Admin admin = adminRepository.findByEmail(email);
-
-            if (admin == null) {
-                Staff staff = staffRepository.findByEmail(email);
-
-                if(staff == null) {
-                    throw new UsernameNotFoundException("Admin not found with email: " + email);
-                }
-
-                return new org.springframework.security.core.userdetails.User(staff.getEmail(), staff.getPassword(), new ArrayList<>());
-            }
-            return new org.springframework.security.core.userdetails.User(admin.getEmail(), admin.getPassword(), new ArrayList<>());
-            //throw new UsernameNotFoundException("Customer not found with email: " + email);
+        if (customer != null) {
+            //Trả về đối tượng UserDetails với thông tin customer
+            return new org.springframework.security.core.userdetails.User(customer.getEmail(), customer.getPassword(), new ArrayList<>());
         }
-        //Trả về đối tượng UserDetails với thông tin customer
-        return new org.springframework.security.core.userdetails.User(customer.getEmail(), customer.getPassword(), new ArrayList<>());
+
+        Admin admin = adminRepository.findByEmail(email);
+        if (admin != null) {
+            return new org.springframework.security.core.userdetails.User(admin.getEmail(), admin.getPassword(), new ArrayList<>());
+        }
+
+        Staff staff = staffRepository.findByEmail(email);
+        if(staff != null) {
+            return new org.springframework.security.core.userdetails.User(staff.getEmail(), staff.getPassword(), new ArrayList<>());
+        }
+
+        // Nếu không tìm thấy người dùng nào, ném ngoại lệ
+        throw new UsernameNotFoundException("User not found with email: " + email);
     }
 }

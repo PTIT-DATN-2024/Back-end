@@ -1,10 +1,12 @@
 package selling_electronic_devices.back_end.Controller;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.AddProductToCart;
 import selling_electronic_devices.back_end.Entity.Cart;
@@ -13,6 +15,8 @@ import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Repository.CartDetailRepository;
 import selling_electronic_devices.back_end.Repository.CartRepository;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
+import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
+import selling_electronic_devices.back_end.Service.ProductReviewService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,18 +36,29 @@ public class CartController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private ProductReviewRepository productReviewRepository;
 
-    @GetMapping
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private ProductReviewService productReviewService;
+
+    @GetMapping("/customer/{customerId}")
     public ResponseEntity<?> getAllCartDetails(
+            @PathVariable String customerId,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
+
+        Cart cart = cartRepository.findByCustomer(customerRepository.findById(customerId).orElseGet(null));
 
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("cartDetailId")));
         Map<String, Object> response = new HashMap<>();
         try {
             response.put("EC", 0);
-            response.put("MS", "Get all cart details successfully.");
-            response.put("cartDetails", cartDetailRepository.findAll(pageRequest).getContent());
+            response.put("MS", "Get all item form Cart successfully.");
+            response.put("cart", cartDetailRepository.findByCart(cart, pageRequest).getContent());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -54,7 +69,7 @@ public class CartController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateCart(@RequestParam AddProductToCart addProductToCart) {
+    public ResponseEntity<?> updateCart(@RequestBody AddProductToCart addProductToCart) {
         Map<String, Object> response = new HashMap<>();
         try {
             Optional<Customer> optionalCustomer = customerRepository.findById(addProductToCart.getCustomerId());
@@ -92,13 +107,13 @@ public class CartController {
         }
     }
 
-    @DeleteMapping("/{cartDetailId}")
+    @DeleteMapping("/cartDetail/{cartDetailId}")
     public ResponseEntity<?> removeProductFromCart(@PathVariable String cartDetailId) {
         Map<String, Object> response = new HashMap<>();
         Optional<CartDetail> optionalCartDetail = cartDetailRepository.findById(cartDetailId);
         optionalCartDetail.ifPresent(cartDetail -> {
             try {
-                cartDetailRepository.deleteById(cartDetailId);
+                cartDetailRepository.deleteById(cartDetailId);// ban đầu ko xóa được do List cartDetails trong Cart (cascade) -> hibernate ko tự xóa (cartDetail) do lúc này Cart đang là chủ thể của cascade -> hoặc bỏ List cartDetails(của Cart) hoặc thêm cascade cho trường cart (trong CartDetail) (Lưu ý khi xóa CartDetail -> xóa mât Cart liên quan(dù quan hệ ManyToOne)
                 response.put("EC", 0);
                 response.put("MS", "Deleted cartDetail successfully.");
             } catch (Exception e) {
@@ -110,7 +125,8 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{cartDetailId}")
+
+    @PutMapping("/cartDetail/{cartDetailId}")
     public ResponseEntity<?> updateItemInCart(@PathVariable String cartDetailId, @RequestParam Long quantity) {
         Map<String, Object> response = new HashMap<>();
 
