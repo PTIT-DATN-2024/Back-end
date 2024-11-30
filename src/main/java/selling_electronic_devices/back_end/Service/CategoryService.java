@@ -18,7 +18,9 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public void createCategory(String name, String description, MultipartFile avatar) {
+    public Map<String, Object> createCategory(String name, String description, MultipartFile avatar) {
+        Map<String, Object> response = new HashMap<>();
+
         Category category = new Category();
         category.setCategoryId(UUID.randomUUID().toString());
         category.setName(name);
@@ -33,10 +35,17 @@ public class CategoryService {
             String urlAvatarDb = "http://localhost:8080/uploads/categories/" + avatar.getOriginalFilename();
             category.setAvatar(urlAvatarDb);
 
+            response.put("EC", 0);
+            response.put("MS", "Created Successfully.");
+
             categoryRepository.save(category);
         } catch (IOException e) {
             e.printStackTrace();
+            response.put("EC", 1);
+            response.put("MS", "Error While Creating!");
         }
+
+        return response;
     }
 
     public List<Category> getAllCategories(int offset, int limit) {

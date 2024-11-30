@@ -23,17 +23,8 @@ public class CategoryController {
             @RequestPart("name") String name,
             @RequestPart("description") String description,
             @RequestPart("avatar") MultipartFile avatar) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            categoryService.createCategory(name, description, avatar);
-            response.put("EC", 0);
-            response.put("MS", "Created Successfully.");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("EC", 1);
-            response.put("MS", "Error While Creating!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+
+        return ResponseEntity.ok(categoryService.createCategory(name, description, avatar));
     }
 
     @GetMapping
