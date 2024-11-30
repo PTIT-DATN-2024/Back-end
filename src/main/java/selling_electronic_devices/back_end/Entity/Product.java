@@ -26,7 +26,7 @@ public class Product {
     @JoinColumn(name = "product_discount_id", referencedColumnName = "product_discount_id")
     private ProductDiscount productDiscount;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product",fetch = FetchType.EAGER)
     @JsonIgnoreProperties("product")
     private List<ProductImage> productImages;
 

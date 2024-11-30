@@ -5,6 +5,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,10 +30,19 @@ public class ProductController {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody ProductDto productDto, @RequestParam MultipartFile avatar) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createProduct(
+            @RequestParam("categoryId") String categoryId,
+            @RequestParam("name") String name,
+            @RequestParam("total") Long total,
+            @RequestParam("description") String description,
+            @RequestParam("importPrice") Double importPrice,
+            @RequestParam("sellingPrice") Double sellingPrice,
+            @RequestParam("weight") String weight,
+            @RequestParam("avatar") MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
         try {
+            ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
             productService.createProduct(productDto, avatar);
             response.put("EC", 0);
             response.put("MS", "Created product successfully.");

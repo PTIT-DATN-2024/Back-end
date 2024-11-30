@@ -6,18 +6,28 @@ import selling_electronic_devices.back_end.Entity.ProductDiscount;
 
 public class ProductDto {
     private String categoryId;
-//    private ProductDiscount productDiscount;
+    //    private ProductDiscount productDiscount;
     private String name;
     private Long total;
-//    private Double rate;
+    //    private Double rate;
 //    private Long numberVote;
     private String description;
     private Double importPrice;
     private Double sellingPrice;
     private String weight;
-    private String presentImage;
+//    private String avatar;
 //    private String status;
 
+
+    public ProductDto(String categoryId, String name, Long total, String description, Double importPrice, Double sellingPrice, String weight) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.total = total;
+        this.description = description;
+        this.importPrice = importPrice;
+        this.sellingPrice = sellingPrice;
+        this.weight = weight;
+    }
 
     public String getCategoryId() {
         return categoryId;
@@ -73,13 +83,5 @@ public class ProductDto {
 
     public void setWeight(String weight) {
         this.weight = weight;
-    }
-
-    public String getPresentImage() {
-        return presentImage;
-    }
-
-    public void setPresentImage(String presentImage) {
-        this.presentImage = presentImage;
     }
 }

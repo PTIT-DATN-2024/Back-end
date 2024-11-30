@@ -45,7 +45,7 @@ public class CategoryController {
             @PathVariable String categoryId,
             @RequestPart("name") String name,
             @RequestPart("description") String description,
-            @RequestPart("avatar") MultipartFile avatar) {
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
         try {
             categoryService.updateCategory(categoryId, name, description, avatar);
