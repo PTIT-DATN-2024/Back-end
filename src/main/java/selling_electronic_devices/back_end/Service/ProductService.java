@@ -88,6 +88,9 @@ public class ProductService {
     public Map<String, Object> deleteProduct(String productId) {
         Map<String, Object> response = new HashMap<>();
         Optional<Product> optionalProduct = productRepository.findById(productId);
+        response.put("EC", 1);
+        response.put("MS", "Not found.");
+
         optionalProduct.ifPresent(product -> {
             product.setIsDelete("True");
             productRepository.save(product);
@@ -95,8 +98,6 @@ public class ProductService {
             response.put("MS", "Deleted product successfully.");
         });
 
-        response.put("EC", 1);
-        response.put("MS", "Not found.");
         return response;
     }
 
