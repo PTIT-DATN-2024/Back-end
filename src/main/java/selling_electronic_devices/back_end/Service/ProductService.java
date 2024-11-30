@@ -46,13 +46,14 @@ public class ProductService {
             product.setTotal(productDto.getTotal());
             product.setRate(4.5);
             product.setNumberVote(19L);
-            product.setWeight(productDto.getWeight());
-            product.setPresentImage(productDto.getPresentImage());
             product.setDescription(productDto.getDescription());
             product.setImportPrice(productDto.getImportPrice());
             product.setSellingPrice(productDto.getSellingPrice());
+            product.setWeight(productDto.getWeight());
             product.setStatus("available");
-
+            product.setPresentImage("null");
+            product.setIsDelete("False");
+            productRepository.save(product);
             // Lưu ảnh vào ProductImage
             ProductImage productImage = new ProductImage();
             productImage.setProductImageId(UUID.randomUUID().toString());
@@ -72,9 +73,10 @@ public class ProductService {
                 e.printStackTrace();
             }
 
-            productRepository.save(product);
+
         }
     }
+
 
     public Map<String, Object> getAllProducts(int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.asc("productId")));
@@ -113,7 +115,7 @@ public class ProductService {
             product.setRate(4.5);
             product.setNumberVote(19L);
             product.setWeight(productDto.getWeight());
-            product.setPresentImage(productDto.getPresentImage());
+//            product.setPresentImage(productDto.getPresentImage());
             product.setDescription(productDto.getDescription());
             product.setImportPrice(productDto.getImportPrice());
             product.setSellingPrice(productDto.getSellingPrice());

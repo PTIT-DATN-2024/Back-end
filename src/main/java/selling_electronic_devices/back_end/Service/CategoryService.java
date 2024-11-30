@@ -61,7 +61,7 @@ public class CategoryService {
             category.setDescription(description);
 
             // kiểm tra avatar có thay đổi?
-            if (avatar != null && avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>
+            if (avatar != null && !avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>
                 String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
                 File avatarFile = new File(avatarPath);
 
