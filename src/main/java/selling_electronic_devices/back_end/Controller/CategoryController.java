@@ -70,17 +70,8 @@ public class CategoryController {
 
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<?> deleteCategory(@PathVariable String categoryId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            response.put("EC", 0);
-            response.put("MS", "Category deleted successfully.");
-            categoryService.deleteCategory(categoryId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("EC", 1);
-            response.put("MS", "Error while deleting!");
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+
+        return ResponseEntity.ok(categoryService.deleteCategory(categoryId));
     }
 
 }

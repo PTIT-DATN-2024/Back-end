@@ -60,6 +60,9 @@ public class Product {
     @Column(name = "present_image")
     private String presentImage;
 
+    @Column(name = "is_delete")
+    private String isDelete;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -177,6 +180,14 @@ public class Product {
 
     public void setPresentImage(String presentImage) {
         this.presentImage = presentImage;
+    }
+
+    public String getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(String isDelete) {
+        this.isDelete = isDelete;
     }
 
     public LocalDateTime getCreatedAt() {

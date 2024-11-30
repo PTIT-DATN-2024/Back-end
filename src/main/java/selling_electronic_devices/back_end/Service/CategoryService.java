@@ -10,9 +10,7 @@ import selling_electronic_devices.back_end.Repository.CategoryRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class CategoryService {
@@ -70,7 +68,21 @@ public class CategoryService {
         }
     }
 
-    public void deleteCategory(String categoryId) {
-        categoryRepository.findById(categoryId);
+    public Map<String, Object> deleteCategory(String categoryId) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        optionalCategory.ifPresent(category -> {
+            if (category.getProducts().isEmpty()) {
+                response.put("EC", 0);
+                response.put("MS", "Category deleted successfully.");
+                categoryRepository.delete(category);
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Category cannot be deleted because it has products.");
+            }
+        });
+
+        return response;
     }
 }
