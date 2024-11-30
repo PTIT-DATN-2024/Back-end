@@ -58,7 +58,7 @@ public class CustomerService {
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isPresent()) {
             Customer customer = optionalCustomer.get();
-            customer.setIsDelete("true");
+            customer.setIsDelete("True");
             customerRepository.save(customer);
             return true;
         }
@@ -68,7 +68,8 @@ public class CustomerService {
     public boolean deleteStaff(String staffId) {
         Optional<Staff> optionalStaff = staffRepository.findById(staffId);
         return optionalStaff.map(staff -> {
-            optionalStaff.get().setIsDelete("True");
+            staff.setIsDelete("True");
+            staffRepository.save(staff);
             return true;
         }).orElseGet(() -> false);
     }
