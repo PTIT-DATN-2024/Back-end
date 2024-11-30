@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import selling_electronic_devices.back_end.Dto.CategoryDto;
 import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
 
@@ -21,12 +20,13 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public void createCategory(CategoryDto categoryDto, MultipartFile avatar) {
+    public void createCategory(String name, String description, MultipartFile avatar) {
         Category category = new Category();
         category.setCategoryId(UUID.randomUUID().toString());
-        category.setName(categoryDto.getName());
+        category.setName(name);
+        category.setDescription(description);
 
-        String avatarPath = "D:/electronic_devices/uploads/categories" + avatar.getOriginalFilename();
+        String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
         File avatarFile = new File(avatarPath);
 
         try {
@@ -46,15 +46,15 @@ public class CategoryService {
         return categoryRepository.findAll(pageRequest).getContent();
     }
 
-    public void updateCategory(String categoryId, CategoryDto categoryDto, MultipartFile avatar) {
+    public void updateCategory(String categoryId, String name, String description, MultipartFile avatar) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
         if (optionalCategory.isPresent()) {
             Category category = optionalCategory.get();
-            category.setName(categoryDto.getName());
-            category.setAvatar(categoryDto.getAvatar());
+            category.setName(name);
+            category.setDescription(description);
 
             // kiểm tra avatar có thay đổi?
-            if (avatar != null & avatar.isEmpty()) {
+            if (avatar != null && avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>
                 String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
                 File avatarFile = new File(avatarPath);
 
