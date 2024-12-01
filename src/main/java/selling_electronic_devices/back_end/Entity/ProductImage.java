@@ -11,7 +11,7 @@ public class ProductImage {
     @Column(name = "product_image_id")
     private String productImageId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)//, cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     @JsonIgnoreProperties("productImages")
     private Product product;

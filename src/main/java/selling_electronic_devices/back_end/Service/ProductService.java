@@ -1,15 +1,13 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.ProductDto;
-import selling_electronic_devices.back_end.Dto.ProductReviewDto;
 import selling_electronic_devices.back_end.Entity.*;
 import selling_electronic_devices.back_end.Repository.CategoryRepository;
 import selling_electronic_devices.back_end.Repository.ProductImageRepository;
@@ -35,48 +33,66 @@ public class ProductService {
     private JdbcTemplate jdbcTemplate;
 
 
-    public void createProduct(ProductDto productDto, MultipartFile avatar) {//, MultipartFile avatar1, MultipartFile avatar2) {
-        Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
-        if (optionalCategory.isPresent()) {
-            Product product = new Product();
-            product.setProductId(UUID.randomUUID().toString());
-            product.setCategory(optionalCategory.get());
-            product.setProductDiscount(null);
-            product.setName(productDto.getName());
-            product.setTotal(productDto.getTotal());
-            product.setRate(4.5);
-            product.setNumberVote(19L);
-            product.setDescription(productDto.getDescription());
-            product.setImportPrice(productDto.getImportPrice());
-            product.setSellingPrice(productDto.getSellingPrice());
-            product.setWeight(productDto.getWeight());
-            product.setStatus("available");
-            product.setPresentImage("null");
-            product.setIsDelete("False");
-            productRepository.save(product);
-            // Lưu ảnh vào ProductImage
-            ProductImage productImage = new ProductImage();
-            productImage.setProductImageId(UUID.randomUUID().toString());
-            productImage.setProduct(product);
+    public Map<String, Object> createProduct(ProductDto productDto, MultipartFile avatar) {
+        Map<String, Object> response = new HashMap<>();
 
-            // lưu ảnh
-            String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
-            File avtFile = new File(avtPath);
+        try {
+            Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
+            if (optionalCategory.isPresent()) {
+                Product product = new Product();
+                product.setProductId(UUID.randomUUID().toString());
+                product.setCategory(optionalCategory.get());
+                product.setProductDiscount(null);
+                product.setName(productDto.getName());
+                product.setTotal(productDto.getTotal());
+                product.setRate(4.5);
+                product.setNumberVote(19L);
+                product.setDescription(productDto.getDescription());
+                product.setImportPrice(productDto.getImportPrice());
+                product.setSellingPrice(productDto.getSellingPrice());
+                product.setWeight(productDto.getWeight());
+                product.setStatus("available");
+                product.setPresentImage("null");
+                product.setIsDelete("False");
 
-            try {
+                // Lưu sản phẩm
+                productRepository.save(product);
+
+                // Lưu ảnh vào ProductImage
+                ProductImage productImage = new ProductImage();
+                productImage.setProductImageId(UUID.randomUUID().toString());
+                productImage.setProduct(product);
+
+                // Lưu file ảnh
+                String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
+                File avtFile = new File(avtPath);
                 avatar.transferTo(avtFile);
                 String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
                 productImage.setImage(urlAvtDb);
 
                 productImageRepository.save(productImage);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                response.put("EC", 0);
+                response.put("MS", "Created product successfully.");
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Category not found.");
             }
-
-
+        } catch (DataIntegrityViolationException e) {
+            response.put("EC", 1);
+            response.put("MS", "Product name already exists.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("EC", 2);
+            response.put("MS", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("EC", 3);
+            response.put("MS", "An unexpected error occurred: " + e.getMessage());
         }
-    }
 
+        return response;
+    }
 
     public Map<String, Object> getAllProducts(int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.asc("productId")));
@@ -103,47 +119,68 @@ public class ProductService {
         return response;
     }
 
-    public void updateProduct(String productId, ProductDto productDto, MultipartFile avatar) {
+    public Map<String, Object> updateProduct(String productId, ProductDto productDto, MultipartFile avatar) {
+        Map<String, Object> response = new HashMap<>();
         Optional<Product> productOp = productRepository.findById(productId);
         Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
-        if (productOp.isPresent() && optionalCategory.isPresent()) {
-            Product product = productOp.get();
-            product.setCategory(optionalCategory.get());
-//            product.setProductDiscount(productDto.getProductDiscount());
-            product.setName(productDto.getName());
-            product.setTotal(productDto.getTotal());
-            product.setRate(4.5);
-            product.setNumberVote(19L);
-            product.setWeight(productDto.getWeight());
-//            product.setPresentImage(productDto.getPresentImage());
-            product.setDescription(productDto.getDescription());
-            product.setImportPrice(productDto.getImportPrice());
-            product.setSellingPrice(productDto.getSellingPrice());
-            product.setStatus(product.getStatus());
 
-            if (avatar != null && avatar.isEmpty()) {
-                String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
-                File avtFile = new File(avtPath);
+        try {
+            if (productOp.isPresent() && optionalCategory.isPresent()) {
+                Product product = productOp.get();
+                product.setCategory(optionalCategory.get());
 
-                try {
-                    avatar.transferTo(avtFile);
-                    String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+                product.setProductDiscount(null);
+                product.setName(productDto.getName());
+                product.setTotal(productDto.getTotal());
+                product.setDescription(productDto.getDescription());
+                product.setImportPrice(productDto.getImportPrice());
+                product.setSellingPrice(productDto.getSellingPrice());
+                product.setWeight(productDto.getWeight());
 
-                    // lưu vào Product Image
-                    Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
-                    optionalProductImage.ifPresent(productImage -> {
-                        ProductImage changeImage = optionalProductImage.get();
-                        changeImage.setImage(urlAvtDb);
+                product.setRate(4.5);
+                product.setNumberVote(19L);
+                product.setPresentImage("null");
+                product.setStatus(product.getStatus());
 
-                        productImageRepository.save(changeImage);
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
+                productRepository.save(product);
+
+                if (avatar != null && !avatar.isEmpty()) {
+                    String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
+                    File avtFile = new File(avtPath);
+
+                        avatar.transferTo(avtFile);
+                        String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+
+                        // lưu vào Product Image
+                        Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
+                        optionalProductImage.ifPresent(productImage -> {
+                            ProductImage changeImage = optionalProductImage.get();
+                            changeImage.setImage(urlAvtDb);
+
+                            productImageRepository.save(changeImage);
+                        });
                 }
-            }
 
-            productRepository.save(product);
+                response.put("EC", 0);
+                response.put("MS", "Updated product successfully.");
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Category not found.");
+            }
+        } catch (DataIntegrityViolationException e) {
+            response.put("EC", 1);
+            response.put("MS", "Product name already exist.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("EC", 2);
+            response.put("MS", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("EC", 3);
+            response.put("MS", "An unexpected error occurred: " + e.getMessage());
         }
+
+        return response;
     }
 
 //    public Map<String, Object> rateProduct(String productId, ProductReviewDto productReviewDto) {

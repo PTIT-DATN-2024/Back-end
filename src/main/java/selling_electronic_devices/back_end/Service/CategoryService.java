@@ -1,6 +1,7 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -21,15 +22,22 @@ public class CategoryService {
     public Map<String, Object> createCategory(String name, String description, MultipartFile avatar) {
         Map<String, Object> response = new HashMap<>();
 
-        Category category = new Category();
-        category.setCategoryId(UUID.randomUUID().toString());
-        category.setName(name);
-        category.setDescription(description);
-
-        String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
-        File avatarFile = new File(avatarPath);
-
         try {
+            // kiểm tra name, ko dùng cho update (vì nếu giữ nguyên name, thay đổi description... => exist(chính nó) => trả ra Category name already exists => ko cho update => sai
+            if (categoryRepository.existsByName(name)){ //có thể dùng exception DataIntegrityViolationException được, nhưng yêu cầu đây đúng là ngoại lệ mà Database ném ra., dùng if(...) thì ôm được nhiều case hơn (nhưng ko biết lỗi cụ thể).
+                response.put("EC", 2);
+                response.put("MS", "Category name already exists.");
+                return response;
+            }
+
+            Category category = new Category();
+            category.setCategoryId(UUID.randomUUID().toString());
+            category.setName(name);
+            category.setDescription(description);
+
+            String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
+            File avatarFile = new File(avatarPath);
+
             avatar.transferTo(avatarFile);
 
             String urlAvatarDb = "http://localhost:8080/uploads/categories/" + avatar.getOriginalFilename();
@@ -39,10 +47,18 @@ public class CategoryService {
             response.put("MS", "Created Successfully.");
 
             categoryRepository.save(category);
+
+        } catch (DataIntegrityViolationException e) {
+            response.put("EC", 1);
+            response.put("MS", "Category name already exist.");
         } catch (IOException e) {
             e.printStackTrace();
             response.put("EC", 1);
-            response.put("MS", "Error While Creating!");
+            response.put("MS", "Error saving avatar!");
+        } catch (Exception e) {//(DataIntegrityViolationException e) {
+            e.printStackTrace();
+            response.put("EC", 2);
+            response.put("MS", "Error saving data to database!");
         }
 
         return response;
@@ -53,28 +69,48 @@ public class CategoryService {
         return categoryRepository.findAll(pageRequest).getContent();
     }
 
-    public void updateCategory(String categoryId, String name, String description, MultipartFile avatar) {
-        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
-        if (optionalCategory.isPresent()) {
-            Category category = optionalCategory.get();
-            category.setName(name);
-            category.setDescription(description);
+    public Map<String, Object> updateCategory(String categoryId, String name, String description, MultipartFile avatar) {
+        Map<String, Object> response = new HashMap<>();
 
-            // kiểm tra avatar có thay đổi?
-            if (avatar != null && !avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>
-                String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
-                File avatarFile = new File(avatarPath);
+        try {
 
-                try {
+            Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+            if (optionalCategory.isPresent()) {
+                Category category = optionalCategory.get();
+                category.setName(name);
+                category.setDescription(description);
+
+                // kiểm tra avatar có thay đổi?
+                if (avatar != null && !avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>
+                    String avatarPath = "D:/electronic_devices/uploads/categories/" + avatar.getOriginalFilename();
+                    File avatarFile = new File(avatarPath);
+
                     avatar.transferTo(avatarFile);
                     String urlAvtDb = "http://localhost:8080/uploads/categories/" + avatar.getOriginalFilename();
                     category.setAvatar(urlAvtDb);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
+
+                response.put("EC", 0);
+                response.put("MS", "Updated Successfully.");
+                categoryRepository.save(category);
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Updated Error!");
             }
-            categoryRepository.save(category);
+        } catch (DataIntegrityViolationException e) {
+            response.put("EC", 1);
+            response.put("MS", "Category name already exists.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("EC", 2);
+            response.put("MS", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("EC", 3);
+            response.put("MS", "Error updating!");
         }
+
+        return response;
     }
 
     public Map<String, Object> deleteCategory(String categoryId) {
