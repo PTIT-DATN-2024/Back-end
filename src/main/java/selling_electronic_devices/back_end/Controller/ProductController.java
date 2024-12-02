@@ -96,10 +96,11 @@ public class ProductController {
             @RequestParam(value = "importPrice") Double importPrice,
             @RequestParam(value = "sellingPrice") Double sellingPrice,
             @RequestParam(value = "weight") String weight,
+//            @RequestParam(value = "productImageId") String productImageId,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
 
         ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
-        return ResponseEntity.ok(productService.updateProduct(productId, productDto, avatar));
+        return ResponseEntity.ok(productService.updateProduct(productId, productDto, avatar)); // productImageId
     }
 
     @DeleteMapping("/{productId}")

@@ -66,6 +66,7 @@ public class ProductService {
                 // Lưu file ảnh
                 String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
                 File avtFile = new File(avtPath);
+
                 avatar.transferTo(avtFile);
                 String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
                 productImage.setImage(urlAvtDb);
@@ -148,17 +149,17 @@ public class ProductService {
                     String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
                     File avtFile = new File(avtPath);
 
-                        avatar.transferTo(avtFile);
-                        String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+                    avatar.transferTo(avtFile);
+                    String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
 
-                        // lưu vào Product Image
-                        Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
-                        optionalProductImage.ifPresent(productImage -> {
-                            ProductImage changeImage = optionalProductImage.get();
-                            changeImage.setImage(urlAvtDb);
+                    // lưu vào Product Image
+                    Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
+                    optionalProductImage.ifPresent(productImage -> {
+                        ProductImage changeImage = optionalProductImage.get();
+                        changeImage.setImage(urlAvtDb);
 
-                            productImageRepository.save(changeImage);
-                        });
+                        productImageRepository.save(changeImage);
+                    });
                 }
 
                 response.put("EC", 0);

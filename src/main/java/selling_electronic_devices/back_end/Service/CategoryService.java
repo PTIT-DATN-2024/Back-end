@@ -73,7 +73,6 @@ public class CategoryService {
         Map<String, Object> response = new HashMap<>();
 
         try {
-
             Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
             if (optionalCategory.isPresent()) {
                 Category category = optionalCategory.get();
@@ -90,9 +89,9 @@ public class CategoryService {
                     category.setAvatar(urlAvtDb);
                 }
 
+                categoryRepository.save(category);
                 response.put("EC", 0);
                 response.put("MS", "Updated Successfully.");
-                categoryRepository.save(category);
             } else {
                 response.put("EC", 1);
                 response.put("MS", "Updated Error!");
@@ -117,16 +116,40 @@ public class CategoryService {
         Map<String, Object> response = new HashMap<>();
 
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
-        optionalCategory.ifPresent(category -> {
-            if (category.getProducts().isEmpty()) {
-                response.put("EC", 0);
-                response.put("MS", "Category deleted successfully.");
-                categoryRepository.delete(category);
-            } else {
-                response.put("EC", 1);
-                response.put("MS", "Category cannot be deleted because it has products.");
-            }
-        });
+        optionalCategory.ifPresentOrElse(
+                category -> {
+                    if (category.getProducts().isEmpty()) {
+
+                        // xóa ảnh
+                        String avatarUrl = category.getAvatar();
+                        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                            String avatarFilePath = avatarUrl.replace("http://localhost:8080/", "D:/electronic_devices/");
+                            File avatarFile = new File(avatarFilePath);
+
+                            if (avatarFile.exists()) {
+                                if (avatarFile.delete()) {
+                                    System.out.println("Deleted file.");
+                                } else {
+                                    System.out.println("Failed to delete file.");
+                                }
+                            } else {
+                                System.out.println("Not found file: " + avatarFilePath);
+                            }
+                        }
+
+                        categoryRepository.delete(category);
+
+                        response.put("EC", 0);
+                        response.put("MS", "Category deleted.");
+                    } else {
+                        response.put("EC", 1);
+                        response.put("MS", "Category cannot be deleted because it has products.");
+                    }
+                },
+                () -> {
+                    response.put("EC", 2);
+                    response.put("MS", "Category not found.");
+                });
 
         return response;
     }

@@ -37,7 +37,6 @@ public class CategoryController {
         response.put("MS", "Get All Categories Successfully.");
         response.put("categories", categoryService.getAllCategories(offset, limit));
         return ResponseEntity.ok(response);
-//        return ResponseEntity.ok(categoryService.getAllCategories(offset, limit));
     }
 
     @PutMapping(value = "/{categoryId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
