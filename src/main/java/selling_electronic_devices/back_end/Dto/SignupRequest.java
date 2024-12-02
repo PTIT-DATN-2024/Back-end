@@ -8,7 +8,15 @@ public class SignupRequest {
     private String address;
     private String phone;
     private String role;
-    private String avatar;
+//    private String avatar;
+
+    public SignupRequest(String email, String password, String address, String phone, String role) {
+        this.email = email;
+        this.password = password;
+        this.address = address;
+        this.phone = phone;
+        this.role = role;
+    }
 
     public String getEmail() {
         return email;
@@ -48,13 +56,5 @@ public class SignupRequest {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
     }
 }

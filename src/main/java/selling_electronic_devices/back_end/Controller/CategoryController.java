@@ -37,7 +37,6 @@ public class CategoryController {
         response.put("MS", "Get All Categories Successfully.");
         response.put("categories", categoryService.getAllCategories(offset, limit));
         return ResponseEntity.ok(response);
-//        return ResponseEntity.ok(categoryService.getAllCategories(offset, limit));
     }
 
     @PutMapping(value = "/{categoryId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -46,17 +45,8 @@ public class CategoryController {
             @RequestPart("name") String name,
             @RequestPart("description") String description,
             @RequestPart(value = "avatar", required = false) MultipartFile avatar) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            categoryService.updateCategory(categoryId, name, description, avatar);
-            response.put("EC", 0);
-            response.put("MS", "Updated Successfully.");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("EC", 1);
-            response.put("MS", "Updated Error!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+
+        return ResponseEntity.ok(categoryService.updateCategory(categoryId, name, description, avatar));
     }
 
     @DeleteMapping("/{categoryId}")

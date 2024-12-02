@@ -3,6 +3,7 @@ package selling_electronic_devices.back_end.Controller;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.AuthenticationRequest;
 import selling_electronic_devices.back_end.Dto.LoginResponse;
 import selling_electronic_devices.back_end.Dto.SignupRequest;
@@ -23,6 +25,8 @@ import selling_electronic_devices.back_end.Repository.CartRepository;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.StaffRepository;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -91,9 +95,17 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> signup(
+            @RequestPart("name") String name,
+            @RequestPart("password") String password,
+            @RequestPart("address") String address,
+            @RequestPart("phone") String phone,
+            @RequestPart("role") String role,
+            @RequestPart("avatar") MultipartFile avatar) {
+
         Map<String, Object> response = new HashMap<>();
+        SignupRequest signupRequest = new SignupRequest(name, password, address, phone, role);
 
         switch (signupRequest.getRole()) {
             case "ADMIN" -> {
@@ -110,9 +122,10 @@ public class AuthController {
                 admin.setFullName("adm" + System.currentTimeMillis());
 //            admin.setAddress("Ha Noi");
                 admin.setRole("ADMIN");
-                admin.setAvatar(signupRequest.getAvatar());
                 admin.setPhone(signupRequest.getPhone());
-                admin.setIsDelete("false");
+                admin.setIsDelete("False");
+
+                admin.setAvatar(saveAvatar(avatar, "ADMIN"));
 
                 adminRepository.save(admin);
 
@@ -133,9 +146,10 @@ public class AuthController {
                 staff.setFullName("staff" + System.currentTimeMillis());
 //            staff.setAddress("Ha Noi");
                 staff.setRole("STAFF");
-                staff.setAvatar(signupRequest.getAvatar());
                 staff.setPhone(signupRequest.getPhone());
-                staff.setIsDelete("false");
+                staff.setIsDelete("False");
+
+                staff.setAvatar(saveAvatar(avatar, "STAFF"));
 
                 staffRepository.save(staff);
 
@@ -156,9 +170,11 @@ public class AuthController {
                 customer.setFullName("customer" + System.currentTimeMillis());
                 customer.setAddress("Ha Noi");
                 customer.setRole("CUSTOMER");
-                customer.setAvatar(signupRequest.getAvatar());
                 customer.setPhone(signupRequest.getPhone());
-                customer.setIsDelete("false");
+                customer.setIsDelete("False");
+
+                // Lưu ảnh
+                customer.setAvatar(saveAvatar(avatar, "CUSTOMER"));
 
                 customerRepository.save(customer);
 
@@ -174,6 +190,37 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    public static String saveAvatar(MultipartFile avatar, String role) {
+        String avtPath;
+        if (role.equals("ADMIN")) {
+            avtPath = "D:/electronic_devices/uploads/users/admins/" + avatar.getOriginalFilename();
+        } else if (role.equals("STAFF")) {
+            avtPath = "D:/electronic_devices/uploads/users/staffs/" + avatar.getOriginalFilename();
+        } else {
+            avtPath = "D:/electronic_devices/uploads/users/customers/" + avatar.getOriginalFilename();
+        }
+
+        File avtFile = new File(avtPath);
+
+        String urlAvtDb = null;
+        try {
+            avatar.transferTo(avtFile);
+
+            if (role.equals("ADMIN")) {
+                urlAvtDb = "http://localhost:8080/uploads/users/admins/" + avatar.getOriginalFilename();
+            } else if (role.equals("STAFF")) {
+                urlAvtDb = "http://localhost:8080/uploads/users/staffs/" + avatar.getOriginalFilename();
+            } else {
+                urlAvtDb = "http://localhost:8080/uploads/users/customers/" + avatar.getOriginalFilename();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return urlAvtDb;
     }
 
     @PostMapping("/logout")

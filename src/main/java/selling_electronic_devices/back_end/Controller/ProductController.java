@@ -40,22 +40,9 @@ public class ProductController {
             @RequestParam("sellingPrice") Double sellingPrice,
             @RequestParam("weight") String weight,
             @RequestParam("avatar") MultipartFile avatar) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
-            productService.createProduct(productDto, avatar);
-            response.put("EC", 0);
-            response.put("MS", "Created product successfully.");
-            return ResponseEntity.ok(response);
-        } catch (DataAccessException e) {
-            response.put("EC", 1);
-            response.put("MS", "Error while creating: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception e) {
-            response.put("EC", 2);
-            response.put("MS", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+
+        ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
+        return ResponseEntity.ok(productService.createProduct(productDto, avatar));
     }
 
     @GetMapping
@@ -99,14 +86,21 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{productId}")
-    public ResponseEntity<?> updateProduct(@PathVariable String productId, @RequestBody ProductDto productDto, @RequestParam MultipartFile avatar) {
-        try {
-            productService.updateProduct(productId, productDto, avatar);
-            return ResponseEntity.ok("Updated successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No products found with ID " + productId + " to update.");
-        }
+    @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProduct(
+            @PathVariable String productId,
+            @RequestParam(value = "categoryId") String categoryId,
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "total") Long total,
+            @RequestParam(value = "description") String description,
+            @RequestParam(value = "importPrice") Double importPrice,
+            @RequestParam(value = "sellingPrice") Double sellingPrice,
+            @RequestParam(value = "weight") String weight,
+//            @RequestParam(value = "productImageId") String productImageId,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
+
+        ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
+        return ResponseEntity.ok(productService.updateProduct(productId, productDto, avatar)); // productImageId
     }
 
     @DeleteMapping("/{productId}")
