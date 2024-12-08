@@ -18,7 +18,7 @@ public class Cart {
     @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customer;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER) // cascade = CascadeType.ALL,
     @JsonIgnoreProperties("cart")
     private List<CartDetail> cartDetails;
 
@@ -44,13 +44,13 @@ public class Cart {
         this.customer = customer;
     }
 
-//    public List<CartDetail> getCartDetails() {
-//        return cartDetails;
-//    }
-//
-//    public void setCartDetails(List<CartDetail> cartDetails) {
-//        this.cartDetails = cartDetails;
-//    }
+    public List<CartDetail> getCartDetails() {
+        return cartDetails;
+    }
+
+    public void setCartDetails(List<CartDetail> cartDetails) {
+        this.cartDetails = cartDetails;
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

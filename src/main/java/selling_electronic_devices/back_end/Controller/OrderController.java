@@ -1,6 +1,9 @@
 package selling_electronic_devices.back_end.Controller;
 
 
+import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -8,15 +11,31 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.OrderDto;
 import selling_electronic_devices.back_end.Entity.Customer;
+import selling_electronic_devices.back_end.Entity.Order;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.OrderRepository;
 import selling_electronic_devices.back_end.Service.OrderService;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/order")
 public class OrderController {
+    private static final String TMN_CODE = "F1I9CX1U";
+    private static final String SECRET_KEY = "LERNB4N4HGL1K59T6QP03Y2TR55VSITH";
+    private static final String RETURN_URL = "http://localhost:3000/resultPaymentPage";
+    private static final String VERSION = "2.1.0";
+    private static final Logger log = LoggerFactory.getLogger(OrderController.class);
+
     @Autowired
     private OrderService orderService;
 
@@ -30,7 +49,7 @@ public class OrderController {
     public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto) {
         Map<String, Object> response = new HashMap<>();
         try {
-            orderService.createOrder(orderDto);
+            Order order = orderService.createOrder(orderDto);
             response.put("EC", 0);
             response.put("MS", "Created order successfully.");
             return ResponseEntity.ok(response);
@@ -42,6 +61,135 @@ public class OrderController {
             response.put("EC", 2);
             response.put("MS", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    //Tạo url thanh toán VNPay + và lưu newOrder vào database
+    @PostMapping("/create-payment-url")
+    public ResponseEntity<?> createPaymentUrl(@RequestBody OrderDto orderDto) {
+        try {
+            // Tạo đơn hàng mới
+            Order order = orderService.createOrder(orderDto);
+
+            // Tạo tham số VNPay
+            String vnpCommand = "pay";
+            String orderId = order.getOrderId();
+            String amount = String.valueOf((long) (order.getTotal() * 100));
+            String locale = "vn";
+            String currCode = "VND";
+            String ipAddr = InetAddress.getLocalHost().getHostAddress();
+
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+            String createDate = formatter.format(calendar.getTime());
+//            String createDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+            calendar.add(Calendar.MINUTE, 15);
+            String vnp_ExpireDate = formatter.format(calendar.getTime());
+
+            //(dùng TreeMap -> tự sắp xếp)
+            Map<String, String> vnpParams = new TreeMap<>();
+            vnpParams.put("vnp_Version", VERSION);
+            vnpParams.put("vnp_Command", vnpCommand);
+            vnpParams.put("vnp_TmnCode", TMN_CODE);
+            vnpParams.put("vnp_Amount", amount);
+            vnpParams.put("vnp_CreateDate", createDate);
+            vnpParams.put("vnp_CurrCode", currCode);
+            vnpParams.put("vnp_IpAddr", ipAddr);
+            vnpParams.put("vnp_Locale", locale);
+            vnpParams.put("vnp_OrderInfo", "MaGD" + orderId);
+            vnpParams.put("vnp_OrderType", "other");
+            vnpParams.put("vnp_ReturnUrl", RETURN_URL);
+            vnpParams.put("vnp_TxnRef", orderId);
+            vnpParams.put("vnp_ExpireDate", vnp_ExpireDate);
+            vnpParams.put("vnp_BankCode", "NCB");
+
+            /*### Tạo chữ ký 1: ban đầu dùng map(entry -> entry.getKey() + "=" + entry.getValue()).collection(Collectors.joining("&")) => bị lỗi sai chữ ký do Bên thứ 3(VNPay) kiểm tra chữ ký dựa theo tham số ĐÃ MÃ HÓA --> Nếu ko mã hóa sẽ dẫn đến Chữ ký mà Server tạo ra KHÔNG KHỚP VỚI CHỮ ký của VNPay*/
+            // Hiểu một cách đơn giản: VNPay sau khi nhận vnParams -> nó cũng tạo ra signatureVNP theo tt của nó -> sau đó nó đem signatureVNP compare với signature của ta
+            // Mà VNPay nó tạo signatureVNP theo các thông số đã được mã hóa trước >><<< còn ta lại ko ===> 2 signature không khớp
+           String queryString = vnpParams.entrySet().stream()
+                   .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "=" +
+                                 URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
+                   .collect(Collectors.joining("&"));
+
+            // Tạo chữ ký 2
+//            StringBuilder queryString1 = new StringBuilder(0 );
+//            for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+//                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+//                    if (queryString1.length() > 0) {
+//                        queryString1.append("&");
+//                    }
+//                    queryString1.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
+//                            .append("=")
+//                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
+//                }
+//            }
+
+
+            Mac hmac = Mac.getInstance("HmacSHA512");
+            hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
+//            String signature = new String(Hex.encode(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)))); // hoặc dùng encodeHexString của Apache Commons Codec
+
+            // Mã hóa hex (dùng Apache Commons Codec)
+            String signature = Hex.encodeHexString(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)));
+            vnpParams.put("vnp_SecureHash", signature);
+
+            // Tạo URL thanh toán
+            String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + vnpParams.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining("&"));
+
+            // Trả về kết quả
+            Map<String, Object> response = new HashMap<>();
+            response.put("EC", 0);
+            response.put("MS", "Success");
+            response.put("paymentUrl", paymentUrl);
+            response.put("vnp_ReturnUrl", RETURN_URL);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/handle-return")
+    public ResponseEntity<?> handleReturn(@RequestParam Map<String, String> vnpParams) {
+        try {
+            String secureHash = vnpParams.remove("vnp_SecureHash");
+            vnpParams.remove("vnp_SecureHashType");
+
+            if (vnpParams.isEmpty() || secureHash == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 4, "MS", "Invalid parameters."));
+            }
+
+            // Sắp xếp các tham số
+            String sortedParams = vnpParams.entrySet().stream()
+                    .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "="
+                                + URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
+                    .collect(Collectors.joining("&"));
+
+            // Tọa lại signature
+            Mac hmac = Mac.getInstance("HmacSHA512");
+            hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(), "HmacSHA512"));
+            String generatedHash = Hex.encodeHexString(hmac.doFinal(sortedParams.getBytes(StandardCharsets.UTF_8)));
+
+            if (!secureHash.equals(generatedHash)) {
+                log.error("Signature mismatch. Received: {}, Generated: {}", secureHash, generatedHash);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 1, "MS", "Invalid signature."));
+            }
+
+            // Kiểm tra kết quả giao dịch
+            if ("00".equals(vnpParams.get("vnp_ResponseCode"))) {
+                String orderId  = vnpParams.get("vnp_TxnRef");
+                orderService.updateStatus(orderId, "Paid");
+                return ResponseEntity.ok(Map.of("EC", 0, "MS", "Payment successfully."));
+            } else {
+                return ResponseEntity.ok(Map.of("EC", 1, "MS", "Payment failed", "code", vnpParams.get("vnp_ResponseCode")));
+            }
+
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 2, "MS", "Not found order", "error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "Invalid: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("EC", 3, "MS", "Error handling payment return", "error", e.getMessage()));
         }
     }
 

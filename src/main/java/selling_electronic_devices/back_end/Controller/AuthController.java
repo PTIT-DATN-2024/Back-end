@@ -2,6 +2,7 @@ package selling_electronic_devices.back_end.Controller;
 
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -97,7 +98,7 @@ public class AuthController {
 
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> signup(
-            @RequestPart("name") String name,
+            @RequestPart("email") String email,
             @RequestPart("password") String password,
             @RequestPart("address") String address,
             @RequestPart("phone") String phone,
@@ -105,88 +106,101 @@ public class AuthController {
             @RequestPart("avatar") MultipartFile avatar) {
 
         Map<String, Object> response = new HashMap<>();
-        SignupRequest signupRequest = new SignupRequest(name, password, address, phone, role);
+        SignupRequest signupRequest = new SignupRequest(email, password, address, phone, role);
 
-        switch (signupRequest.getRole()) {
-            case "ADMIN" -> {
-                if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
-                    return ResponseEntity.status(HttpStatus.CREATED).body("Email already exists.");
-                }
+        try {
+            switch (signupRequest.getRole()) {
+                case "ADMIN" -> {
+                    if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                    }
 
-                // Tạo mới nếu email chưa tồn tại
-                Admin admin = new Admin();
-                admin.setAdminId(UUID.randomUUID().toString());
-                admin.setEmail(signupRequest.getEmail());
-                admin.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                admin.setUsername("name" + System.currentTimeMillis());
-                admin.setFullName("adm" + System.currentTimeMillis());
+                    // Tạo mới nếu email chưa tồn tại
+                    Admin admin = new Admin();
+                    admin.setAdminId(UUID.randomUUID().toString());
+                    admin.setEmail(signupRequest.getEmail());
+                    admin.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+                    admin.setUsername("name" + System.currentTimeMillis());
+                    admin.setFullName("adm" + System.currentTimeMillis());
 //            admin.setAddress("Ha Noi");
-                admin.setRole("ADMIN");
-                admin.setPhone(signupRequest.getPhone());
-                admin.setIsDelete("False");
+                    admin.setRole("ADMIN");
+                    admin.setPhone(signupRequest.getPhone());
+                    admin.setIsDelete("False");
 
-                admin.setAvatar(saveAvatar(avatar, "ADMIN"));
+                    admin.setAvatar(saveAvatar(avatar, "ADMIN"));
 
-                adminRepository.save(admin);
+                    adminRepository.save(admin);
 
-                response.put("EC", 0);
-                response.put("MS", "Signup Successfully.");
-            }
-            case "STAFF" -> {
-                if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
-                    return ResponseEntity.status(HttpStatus.CREATED).body("Email already exists.");
+                    response.put("EC", 0);
+                    response.put("MS", "Signup Successfully.");
                 }
+                case "STAFF" -> {
+                    if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                    }
 
-                // Tạo mới nếu email chưa tồn tại
-                Staff staff = new Staff();
-                staff.setStaffId(UUID.randomUUID().toString());
-                staff.setEmail(signupRequest.getEmail());
-                staff.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                staff.setUsername("name" + System.currentTimeMillis());
-                staff.setFullName("staff" + System.currentTimeMillis());
+                    // Tạo mới nếu email chưa tồn tại
+                    Staff staff = new Staff();
+                    staff.setStaffId(UUID.randomUUID().toString());
+                    staff.setEmail(signupRequest.getEmail());
+                    staff.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+                    staff.setUsername("name" + System.currentTimeMillis());
+                    staff.setFullName("staff" + System.currentTimeMillis());
 //            staff.setAddress("Ha Noi");
-                staff.setRole("STAFF");
-                staff.setPhone(signupRequest.getPhone());
-                staff.setIsDelete("False");
+                    staff.setRole("STAFF");
+                    staff.setPhone(signupRequest.getPhone());
+                    staff.setIsDelete("False");
 
-                staff.setAvatar(saveAvatar(avatar, "STAFF"));
+                    staff.setAvatar(saveAvatar(avatar, "STAFF"));
 
-                staffRepository.save(staff);
+                    staffRepository.save(staff);
 
-                response.put("EC", 0);
-                response.put("MS", "Signup Successfully.");
-            }
-            case "CUSTOMER" -> {
-                if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
-                    return ResponseEntity.status(HttpStatus.CREATED).body("Email already exists.");
+                    response.put("EC", 0);
+                    response.put("MS", "Signup Successfully.");
                 }
+                case "CUSTOMER" -> {
+                    if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                    }
 
-                // Tạo mới nếu email chưa tồn tại
-                Customer customer = new Customer();
-                customer.setCustomerId(UUID.randomUUID().toString());
-                customer.setEmail(signupRequest.getEmail());
-                customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                customer.setUserName("CUS" + System.currentTimeMillis());
-                customer.setFullName("customer" + System.currentTimeMillis());
-                customer.setAddress("Ha Noi");
-                customer.setRole("CUSTOMER");
-                customer.setPhone(signupRequest.getPhone());
-                customer.setIsDelete("False");
+                    // Tạo mới nếu email chưa tồn tại
+                    Customer customer = new Customer();
+                    customer.setCustomerId(UUID.randomUUID().toString());
+                    customer.setEmail(signupRequest.getEmail());
+                    customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+                    customer.setUserName("CUS" + System.currentTimeMillis());
+                    customer.setFullName("customer" + System.currentTimeMillis());
+                    customer.setAddress("Ha Noi");
+                    customer.setRole("CUSTOMER");
+                    customer.setPhone(signupRequest.getPhone());
+                    customer.setIsDelete("False");
 
-                // Lưu ảnh
-                customer.setAvatar(saveAvatar(avatar, "CUSTOMER"));
+                    // Lưu ảnh
+                    customer.setAvatar(saveAvatar(avatar, "CUSTOMER"));
 
-                customerRepository.save(customer);
+                    customerRepository.save(customer);
 
-                // tạo giỏ hàng
-                Cart cart = new Cart();
-                cart.setCartId(UUID.randomUUID().toString());
-                cart.setCustomer(customer);
-                cartRepository.save(cart);
+                    // tạo giỏ hàng
+                    Cart cart = new Cart();
+                    cart.setCartId(UUID.randomUUID().toString());
+                    cart.setCustomer(customer);
+                    cartRepository.save(cart);
 
-                response.put("EC", 0);
-                response.put("MS", "Signup Successfully.");
+                    response.put("EC", 0);
+                    response.put("MS", "Signup Successfully.");
+                }
             }
+        } catch (DataIntegrityViolationException e) {
+            response.put("EC", 1);
+            response.put("MS", "Email already exists.");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
 
         return ResponseEntity.ok(response);

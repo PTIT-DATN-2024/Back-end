@@ -104,6 +104,12 @@
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.16.0</version> <!-- Đảm bảo sử dụng phiên bản mới nhất -->
+		</dependency>
+
 
 	</dependencies>
 

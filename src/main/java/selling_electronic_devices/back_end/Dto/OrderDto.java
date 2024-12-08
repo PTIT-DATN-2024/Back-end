@@ -7,7 +7,6 @@ import java.util.List;
 public class OrderDto {
     private String customerId;
     private String staffId;
-    //private List<CartDetailDto> cartDetails;
     private List<CartDetail> cartDetails;
     private Double total;
 

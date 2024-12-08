@@ -144,7 +144,7 @@ public class CartController {
                     if (quantity == 0) {
                         cartDetailRepository.delete(cartDetail);
                     } else {
-                        cartDetail.setQuantity(quantity);
+                        cartDetail.setQuantity(cartDetail.getQuantity() + quantity);
                         cartDetailRepository.save(cartDetail);
                     }
                     response.put("EC", 0);

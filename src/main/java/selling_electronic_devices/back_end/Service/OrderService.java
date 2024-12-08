@@ -30,12 +30,13 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-    public void createOrder(OrderDto orderDto) {
+    public Order createOrder(OrderDto orderDto) {
         Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
         Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
+        Order order;
         if (optionalCustomer.isPresent() && optionalStaff.isPresent()) {
 
-            Order order = new Order();
+            order = new Order();
             order.setOrderId(UUID.randomUUID().toString());
             order.setCustomer(optionalCustomer.get());
             order.setStaff(optionalStaff.get());
@@ -49,7 +50,7 @@ public class OrderService {
             // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
             //List<CartDetailDto> items = orderDto.getCartDetails();
             List<CartDetail> items = orderDto.getCartDetails();
-            for(CartDetail item : items) {
+            for (CartDetail item : items) {
                 DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
                 detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
                 detailOrderedProduct.setOrder(order);
@@ -70,6 +71,8 @@ public class OrderService {
         } else {
             throw new RuntimeException();
         }
+
+        return order;
     }
 
 
@@ -115,5 +118,22 @@ public class OrderService {
         response.put("EC", 0);
         response.put("MS", "Deleted order successfully.");
         return response;
+    }
+
+    public void updateStatus(String orderId, String paid) {
+        if (orderId == null || orderId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Order ID is invalid: " + orderId);
+        }
+
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        optionalOrder.ifPresentOrElse(
+                order -> {
+                    order.setStatus(paid);
+                    orderRepository.save(order);
+                },
+                () -> {
+                    throw new NoSuchElementException("Order with ID: " + orderId + " not found.");
+                }
+        );
     }
 }
