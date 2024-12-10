@@ -30,7 +30,7 @@ public class Product {
     @JsonIgnoreProperties("product")
     private List<ProductImage> productImages;
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true)
     private String name;
 
     @Column(name = "total")

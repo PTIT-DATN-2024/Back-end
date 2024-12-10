@@ -100,8 +100,8 @@ public class OrderController {
             vnpParams.put("vnp_OrderType", "other");
             vnpParams.put("vnp_ReturnUrl", RETURN_URL);
             vnpParams.put("vnp_TxnRef", orderId);
-            vnpParams.put("vnp_ExpireDate", vnp_ExpireDate);
-            vnpParams.put("vnp_BankCode", "NCB");
+//            vnpParams.put("vnp_ExpireDate", vnp_ExpireDate);
+//            vnpParams.put("vnp_BankCode", "NCB");
 
             /*### Tạo chữ ký 1: ban đầu dùng map(entry -> entry.getKey() + "=" + entry.getValue()).collection(Collectors.joining("&")) => bị lỗi sai chữ ký do Bên thứ 3(VNPay) kiểm tra chữ ký dựa theo tham số ĐÃ MÃ HÓA --> Nếu ko mã hóa sẽ dẫn đến Chữ ký mà Server tạo ra KHÔNG KHỚP VỚI CHỮ ký của VNPay*/
             // Hiểu một cách đơn giản: VNPay sau khi nhận vnParams -> nó cũng tạo ra signatureVNP theo tt của nó -> sau đó nó đem signatureVNP compare với signature của ta
@@ -123,7 +123,6 @@ public class OrderController {
 //                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
 //                }
 //            }
-
 
             Mac hmac = Mac.getInstance("HmacSHA512");
             hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
@@ -161,13 +160,14 @@ public class OrderController {
 
             // Sắp xếp các tham số
             String sortedParams = vnpParams.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
                     .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "="
                                 + URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
                     .collect(Collectors.joining("&"));
 
             // Tọa lại signature
             Mac hmac = Mac.getInstance("HmacSHA512");
-            hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(), "HmacSHA512"));
+            hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
             String generatedHash = Hex.encodeHexString(hmac.doFinal(sortedParams.getBytes(StandardCharsets.UTF_8)));
 
             if (!secureHash.equals(generatedHash)) {
@@ -187,7 +187,7 @@ public class OrderController {
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 2, "MS", "Not found order", "error", e.getMessage()));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "Invalid: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "Invalid argument: " + e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("EC", 3, "MS", "Error handling payment return", "error", e.getMessage()));
         }

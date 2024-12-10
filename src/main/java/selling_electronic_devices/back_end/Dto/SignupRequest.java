@@ -1,6 +1,7 @@
 package selling_electronic_devices.back_end.Dto;
 
 import jakarta.persistence.Column;
+import org.springframework.web.multipart.MultipartFile;
 
 public class SignupRequest {
     private String email;
@@ -8,14 +9,15 @@ public class SignupRequest {
     private String address;
     private String phone;
     private String role;
-//    private String avatar;
+    private MultipartFile avatar;
 
-    public SignupRequest(String email, String password, String address, String phone, String role) {
+    public SignupRequest(String email, String password, String address, String phone, String role, MultipartFile avatar) {
         this.email = email;
         this.password = password;
         this.address = address;
         this.phone = phone;
         this.role = role;
+        this.avatar = avatar;
     }
 
     public String getEmail() {
@@ -56,5 +58,13 @@ public class SignupRequest {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public MultipartFile getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(MultipartFile avatar) {
+        this.avatar = avatar;
     }
 }

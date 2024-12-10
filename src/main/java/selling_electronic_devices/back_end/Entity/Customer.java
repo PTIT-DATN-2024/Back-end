@@ -13,7 +13,7 @@ public class Customer {
     @Column(name = "customer_id")
     private String customerId;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true) // nếu ko có unique test_databas ko thể có điểm tựa mà bắt DataIntegrityViolationException
     private String email;
 
     @Column(name = "password", nullable = false)

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -61,11 +63,17 @@ public class AuthController {
     private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword()));
-        } catch (Exception e) {
-            throw new Exception("INVALID_CREDENTIALS ", e);
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                        authenticationRequest.getEmail(),
+                        authenticationRequest.getPassword()));
+        } catch (BadCredentialsException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("EC", 1);
+            response.put("MS", "INVALID_CREDENTIALS");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
         // Tìm customer
@@ -97,16 +105,10 @@ public class AuthController {
     }
 
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup(
-            @RequestPart("email") String email,
-            @RequestPart("password") String password,
-            @RequestPart("address") String address,
-            @RequestPart("phone") String phone,
-            @RequestPart("role") String role,
-            @RequestPart("avatar") MultipartFile avatar) {
+    public ResponseEntity<?> signup(@ModelAttribute SignupRequest signupRequest) {//@RequestParam Map<String, String> request, @RequestPart(value = "avatar") MultipartFile avatar) {
 
         Map<String, Object> response = new HashMap<>();
-        SignupRequest signupRequest = new SignupRequest(email, password, address, phone, role);
+//        SignupRequest signupRequest = new SignupRequest(request.get("email"), request.get("password"), request.get("address"), request.get("phone"), request.get("role"));
 
         try {
             switch (signupRequest.getRole()) {
@@ -114,7 +116,7 @@ public class AuthController {
                     if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
                         response.put("EC", 1);
                         response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                     }
 
                     // Tạo mới nếu email chưa tồn tại
@@ -129,7 +131,7 @@ public class AuthController {
                     admin.setPhone(signupRequest.getPhone());
                     admin.setIsDelete("False");
 
-                    admin.setAvatar(saveAvatar(avatar, "ADMIN"));
+                    admin.setAvatar(saveAvatar(signupRequest.getAvatar(), "ADMIN"));
 
                     adminRepository.save(admin);
 
@@ -140,7 +142,7 @@ public class AuthController {
                     if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
                         response.put("EC", 1);
                         response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                     }
 
                     // Tạo mới nếu email chưa tồn tại
@@ -155,7 +157,7 @@ public class AuthController {
                     staff.setPhone(signupRequest.getPhone());
                     staff.setIsDelete("False");
 
-                    staff.setAvatar(saveAvatar(avatar, "STAFF"));
+                    staff.setAvatar(saveAvatar(signupRequest.getAvatar(), "STAFF"));
 
                     staffRepository.save(staff);
 
@@ -166,7 +168,7 @@ public class AuthController {
                     if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
                         response.put("EC", 1);
                         response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                     }
 
                     // Tạo mới nếu email chưa tồn tại
@@ -182,7 +184,7 @@ public class AuthController {
                     customer.setIsDelete("False");
 
                     // Lưu ảnh
-                    customer.setAvatar(saveAvatar(avatar, "CUSTOMER"));
+                    customer.setAvatar(saveAvatar(signupRequest.getAvatar(), "CUSTOMER"));
 
                     customerRepository.save(customer);
 
@@ -196,11 +198,11 @@ public class AuthController {
                     response.put("MS", "Signup Successfully.");
                 }
             }
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) { // với test_database ko có constraint unique trong Postgres => thêm unique=true vào "email" Class Customer
             response.put("EC", 1);
             response.put("MS", "Email already exists.");
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(400).body(response);
         }
 
         return ResponseEntity.ok(response);
@@ -238,14 +240,20 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> handleCustomerLogout(@RequestBody Map<String, Long> request) throws Exception{
+    public ResponseEntity<?> handleCustomerLogout(@RequestParam(value = "customerId") String customerId) { //Ko có required=false: bắt exception từ param đầu vào -> nếu có lỗi (invalid param) là bỏ qua bên trong + return status mà ko có body => Muốn có thêm body thì phải cấu hình Trong GlobalExceptionHandle
         try {
-            long customerId = request.get("customerId");
+            if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
+                throw new IllegalArgumentException("Invalid customerId format.");
+            }
 
-
-            return ResponseEntity.ok("Customer logout successfully.");
+            Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+            return optionalCustomer.map(customer ->
+                ResponseEntity.ok(Map.of("EC", 0, "MS", "Logout successfully."))
+            ).orElseGet(() ->
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found id."))
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to logout!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "Invalid or missing parameter."));
         }
     }
 

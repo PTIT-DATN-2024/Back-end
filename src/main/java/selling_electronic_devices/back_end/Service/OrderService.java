@@ -5,7 +5,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import selling_electronic_devices.back_end.Dto.CartDetailDto;
 import selling_electronic_devices.back_end.Dto.OrderDto;
 import selling_electronic_devices.back_end.Entity.*;
 import selling_electronic_devices.back_end.Repository.*;
