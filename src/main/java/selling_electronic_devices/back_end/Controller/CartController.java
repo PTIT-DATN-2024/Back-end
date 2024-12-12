@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.AddProductToCart;
 import selling_electronic_devices.back_end.Entity.Cart;
@@ -53,7 +52,6 @@ public class CartController {
             @RequestParam(defaultValue = "10000") int limit) {
 
         try {
-
             if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
                 throw new IllegalArgumentException("Invalid customerId format.");
             }
@@ -65,7 +63,6 @@ public class CartController {
             }
 
             Map<String, Object> response = new HashMap<>();
-
                 if (cart != null) {
                     PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("cartDetailId")));
 
@@ -77,7 +74,7 @@ public class CartController {
                 }
 
                 return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "An error occurred while get all cartDetails."));
         }
     }
@@ -104,7 +101,8 @@ public class CartController {
                     cartDetail.setCart(cartRepository.findByCustomer(customer)); // chỉ thay đổi thuộc tính, ko thay đổi tham chiếu
                 });
 
-                cartDetail.setCartDetailId(UUID.randomUUID().toString());
+                //cartDetail.setCartDetailId(UUID.randomUUID().toString());
+                cartDetail.setCartDetailId("cartDetail007");
                 cartDetail.setProduct(addProductToCart.getProduct());
                 cartDetail.setQuantity(addProductToCart.getQuantity());
                 cartDetail.setTotalPrice(addProductToCart.getTotalPrice());
@@ -158,7 +156,7 @@ public class CartController {
                     if (quantity == 0) {
                         cartDetailRepository.delete(cartDetail);
                     } else {
-                        cartDetail.setQuantity(cartDetail.getQuantity() + quantity);
+                        cartDetail.setQuantity(quantity);
                         cartDetailRepository.save(cartDetail);
                     }
                     response.put("EC", 0);

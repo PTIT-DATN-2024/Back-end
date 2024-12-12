@@ -36,7 +36,7 @@ class AuthControllerTest {
     @InjectMocks
     private AuthController authController;
 
-    @Mock
+    @Mock// dùng @Mock, @MockBean khi muốn kiểm tra logic (vd: controller, ), mà ko muốn quan tâm tương tác với csdl
     private CustomerRepository customerRepository;
 
     @Mock

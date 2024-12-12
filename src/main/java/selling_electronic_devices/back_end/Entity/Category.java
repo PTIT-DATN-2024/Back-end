@@ -37,6 +37,10 @@ public class Category {
         this.avatar = avatar;
     }
 
+    public Category() {
+        
+    }
+
     public String getCategoryId() {
         return categoryId;
     }

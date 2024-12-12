@@ -3,6 +3,7 @@ package selling_electronic_devices.back_end.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,26 +11,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.TestPropertySources;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.AddProductToCart;
 import selling_electronic_devices.back_end.Dto.SignupRequest;
-import selling_electronic_devices.back_end.Entity.Category;
-import selling_electronic_devices.back_end.Entity.Customer;
+import selling_electronic_devices.back_end.Entity.CartDetail;
 import selling_electronic_devices.back_end.Entity.Product;
-import selling_electronic_devices.back_end.Repository.CartRepository;
-import selling_electronic_devices.back_end.Repository.CategoryRepository;
-import selling_electronic_devices.back_end.Repository.CustomerRepository;
-import selling_electronic_devices.back_end.Repository.ProductRepository;
+import selling_electronic_devices.back_end.Repository.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,52 +47,46 @@ public class CartControllerIntegrationTest {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private CartDetailRepository cartDetailRepository;
 
 
     @Autowired
     private AuthController authController;
     @Autowired
     private ProductController productController;
+    @Autowired
+    private CategoryController categoryController;
 
 
     @Autowired
     private EntityManager entityManager;
 
+    @BeforeAll
+    static void setupOnce() {
+
+    }
+
     @BeforeEach
     void setup() {
         // xóa data trước mỗi test
+        cartDetailRepository.deleteAll();
         cartRepository.deleteAll();
         customerRepository.deleteAll();
+        // use Mockito to mock data bỏ qua logic service, cơ cấu đầu ra (.when().then())
 
-        // Thêm data Cust
-//        Customer customer = new Customer();
-//        customer.setCustomerId("cust007");
-//        customer.setEmail("smith@gmail.com");
-//        customer.setPassword(new BCryptPasswordEncoder().encode("1234"));
-//        //customer.setPassword(passwordEncoder.encode("1234"));
-//        customer.setUserName("CUS" + System.currentTimeMillis());
-//        customer.setFullName("customer" + System.currentTimeMillis());
-//        customer.setAddress("Ha Noi");
-//        customer.setPhone("0344248679");
-//        customer.setRole("CUSTOMER");
-//        customer.setIsDelete("False");
-//
-//        customerRepository.save(customer);
+        // dùng clas controller thay cho tạo thủ công customer, cart, category, product
 
         MockMultipartFile avatar = new MockMultipartFile("avatar", "avatar.jpg", MediaType.IMAGE_JPEG_VALUE, "dummy image content".getBytes());
         SignupRequest signupRequest = new SignupRequest("smith@gmmail.com", "1234", "Ha Noi", "0343456789", "CUSTOMER", avatar);
         authController.signup(signupRequest);
+//        Category category = new Category("cate007", "Key Board", "Best choose 2024", "avatar.jpg");
+//        categoryRepository.save(category);
 
-        // new Category + product
-        Category category = new Category("cate007", "Key Board", "Best choise 2024", "avatar.jpg");
-        categoryRepository.save(category);
+        //### add Category + product
+        categoryController.createCategory("Electronics", "Best choose 2024", avatar);
+        productController.createProduct("cate007", "Ban Phim Rapoo", 12L, "Best", 200.00, 250.00, "500", avatar);
 
-        productController.createProduct("cate007", )
-        Product product = new Product();
-
-
-
-        AddProductToCart addProductToCart =  new AddProductToCart("cust007", )
 
     }
 
@@ -133,13 +119,50 @@ public class CartControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.EC").value(2))
                 .andExpect(jsonPath("$.MS").value("An error occurred while get all cartDetails."));
-
     }
 
-    // Add quantity -> change quantity
+    // Add item -> change quantity
     @Test
-    void testAddItemToCart_Success() throws Exception {
+    void testAddItemToCartNUpdateQuantity_Success() throws Exception {
+        // Tạo đối tượng add
+        Product product = productRepository.findById("prod007").orElseGet(null);
+        AddProductToCart addProductToCart = new AddProductToCart("cust007", product, 10L, 200.00);
 
-        String cartDetail =
+        //String jsonContent = "{\"name\":\"Product Name\", \"price\":100.0}";
+
+        //api add
+        mockMvc.perform(put("/cart")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addProductToCart)))// convert object -> strin
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.EC").value(0))
+                .andExpect(jsonPath("$.MS").value("Update cart successfully."));
+
+        Long quantityBeforeChange = cartDetailRepository.findByProduct(product)
+                .map(CartDetail::getQuantity)//.map(cartDetail -> cartDetail.getQuantity())//.map(cartDetail -> {return cartDetail.getQuantity()})
+                .orElse(0L);
+
+        System.out.println("==> Quantity before change: " + quantityBeforeChange);
+
+        //api update quantity
+        String cartDetailId = "cartDetail007";
+        long quantity = 3;
+        mockMvc.perform(put("/cart/cartDetail/{cartDetailId}", cartDetailId)
+                        .param("quantity", String.valueOf(quantity)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.EC").value(0))
+                .andExpect(jsonPath("$.MS").value("Updated quantity successfully."));
+
+        long quantityAfterChange = cartDetailRepository.findByProduct(product)
+                .map(cartDetail -> cartDetail.getQuantity())
+                .orElse(0L);
+
+        System.out.println("===> Quantity after change: " + quantityAfterChange);
+
+        //check quantity[before:after]
+        // dùng thư viện AssertJ xác nhận
+        assertThat(quantityAfterChange).isEqualTo(quantity);
+
+        // api remove cartDetailId
     }
  }

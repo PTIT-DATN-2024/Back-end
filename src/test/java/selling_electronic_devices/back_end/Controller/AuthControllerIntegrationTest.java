@@ -38,6 +38,8 @@ class AuthControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    //@MockBean // Mock repository, không cần kết nối cơ sở dữ liệu thực
+    //Mockito mô phỏng hành vi của repository:  when(productRepository.findById("prod007")).thenReturn(Optional.of(mockProduct));
     @Autowired
     private CustomerRepository customerRepository;
 
