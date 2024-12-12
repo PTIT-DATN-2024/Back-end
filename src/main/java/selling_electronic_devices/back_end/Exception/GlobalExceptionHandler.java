@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Map;
 
@@ -16,5 +17,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleMissingParams(MissingServletRequestParameterException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "Invalid or missing parameter."));
     }
+
+
 
 }

@@ -136,7 +136,7 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    void testLogout_NotFound() throws Exception {
+    void testLogout_NotFound() throws Exception { // Post: invalid parameter => Exception default return = MissingServletRequestParameterException [400], muốn xử lý => define lại
         mockMvc.perform(post("/auth/logout").contentType(MediaType.APPLICATION_JSON).param("customerId", "cust009"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.EC").value(1))

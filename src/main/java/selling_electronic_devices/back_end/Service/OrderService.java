@@ -84,24 +84,6 @@ public class OrderService {
         return response;
     }
 
-    /**public void updateOrder(String orderId, OrderDto orderDto) {
-        Optional<Order> optionalOrder = orderRepository.findById(orderId);
-        Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
-        Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
-        if (optionalOrder.isPresent() && optionalCustomer.isPresent() && optionalStaff.isPresent()) {
-            Order order = optionalOrder.get();
-            order.setOrderId(UUID.randomUUID().toString());
-            order.setCustomer(optionalCustomer.get());
-            order.setStaff(optionalStaff.get());
-            order.setShipAddress("address");
-            order.setTotal(orderDto.getTotal());
-            order.setPaymentType("cash");
-            order.setStatus("CXN");
-
-            orderRepository.save(order);
-        }
-    }*/
-
     public void updateOrder(String orderId, String status) {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         optionalOrder.ifPresent(order -> {

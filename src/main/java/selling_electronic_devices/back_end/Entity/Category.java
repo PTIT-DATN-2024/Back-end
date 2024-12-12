@@ -30,6 +30,13 @@ public class Category {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    public Category(String categoryId, String name, String description, String avatar) {
+        this.categoryId = categoryId;
+        this.name = name;
+        this.description = description;
+        this.avatar = avatar;
+    }
+
     public String getCategoryId() {
         return categoryId;
     }

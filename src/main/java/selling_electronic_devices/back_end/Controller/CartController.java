@@ -45,26 +45,40 @@ public class CartController {
     @Autowired
     private ProductReviewService productReviewService;
 
+
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<?> getAllCartDetails(
-            @PathVariable String customerId,
+            @PathVariable String customerId, // PathVariable: bắt buộc phải có tham số, ko như ReuquestParam(required = false) có thể để trông
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10000") int limit) {
 
-        Cart cart = cartRepository.findByCustomer(customerRepository.findById(customerId).orElseGet(null));
-
-        PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("cartDetailId")));
-        Map<String, Object> response = new HashMap<>();
         try {
-            response.put("EC", 0);
-            response.put("MS", "Get all item form Cart successfully.");
-            response.put("cart", cartDetailRepository.findByCart(cart, pageRequest).getContent());
 
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("EC", 1);
-            response.put("MS", "An error occurred while get all cartDetails.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
+                throw new IllegalArgumentException("Invalid customerId format.");
+            }
+
+            Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+            Cart cart = null;
+            if (optionalCustomer.isPresent()) {
+                cart = cartRepository.findByCustomer(optionalCustomer.get());
+            }
+
+            Map<String, Object> response = new HashMap<>();
+
+                if (cart != null) {
+                    PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("cartDetailId")));
+
+                    response.put("EC", 0);
+                    response.put("MS", "Get all item form Cart successfully.");
+                    response.put("cart", cartDetailRepository.findByCart(cart, pageRequest).getContent());
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found cart."));
+                }
+
+                return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 2, "MS", "An error occurred while get all cartDetails."));
         }
     }
 

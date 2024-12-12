@@ -146,7 +146,7 @@ class AuthControllerTest {
                         .param("address", "address")
                         .param("phone", "1234567890")
                         .param("role", "CUSTOMER"))
-                .andExpect(status().isCreated())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.EC").value(1))
                 .andExpect(jsonPath("$.MS").value("Email already exists."));
     }

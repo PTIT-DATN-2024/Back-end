@@ -9,6 +9,13 @@ public class AddProductToCart {
     private Long quantity;
     private Double totalPrice;
 
+    public AddProductToCart(String customerId, Product product, Long quantity, Double totalPrice) {
+        this.customerId = customerId;
+        this.product = product;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+    }
+
     public String getCustomerId() {
         return customerId;
     }

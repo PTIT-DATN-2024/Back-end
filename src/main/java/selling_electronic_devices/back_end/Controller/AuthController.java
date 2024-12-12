@@ -173,7 +173,8 @@ public class AuthController {
 
                     // Tạo mới nếu email chưa tồn tại
                     Customer customer = new Customer();
-                    customer.setCustomerId(UUID.randomUUID().toString());
+                    //customer.setCustomerId(UUID.randomUUID().toString());
+                    customer.setCustomerId("cust007");
                     customer.setEmail(signupRequest.getEmail());
                     customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
                     customer.setUserName("CUS" + System.currentTimeMillis());
@@ -242,7 +243,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> handleCustomerLogout(@RequestParam(value = "customerId") String customerId) { //Ko có required=false: bắt exception từ param đầu vào -> nếu có lỗi (invalid param) là bỏ qua bên trong + return status mà ko có body => Muốn có thêm body thì phải cấu hình Trong GlobalExceptionHandle
         try {
-            if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
+            if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong (như này ko cần define lại Exception trong GlobalExceptionHandler)
                 throw new IllegalArgumentException("Invalid customerId format.");
             }
 
