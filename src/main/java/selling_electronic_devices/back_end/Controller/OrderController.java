@@ -175,12 +175,47 @@ public class OrderController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("EC", 1, "MS", "Invalid signature."));
             }
 
+            // Đảm báo tránh th .get("cartDetails") ko phải là List<CartDetail>
+//                Object rawCartDetails = vnpParams.get("cartDetails");
+//                List<CartDetail> cartDetails;
+//                if (rawCartDetails instanceof List<?>) {
+//                    cartDetails = ((List<?>) rawCartDetails).stream()
+//                            .filter(CartDetail.class::isInstance)
+//                            .map(CartDetail.class::cast)
+//                            .collect(Collectors.toList());
+//                } else {
+//                    cartDetails = Collections.emptyList();
+//                }
+            // cách 2:
+//                Object rawCartDetails = vnpParams.get("cartDetails");
+//
+//                List<CartDetail> cartDetails = Optional.ofNullable(rawCartDetails)
+//                        .filter(List.class::isInstance)
+//                        .map(list -> ((List<?>) list).stream()
+//                                .filter(CartDetail.class::isInstance)
+//                                .map(CartDetail.class::cast)
+//                                .collect(Collectors.toList()))
+//                        .orElse(Collections.emptyList());
+////                @SuppressWarnings("unchecked")
+
+//                //Cách 3
+//                List<CartDetail> cartDetails = (List<CartDetail>) vnpParams.get("cartDetails");
+//                if (cartDetails == null) {
+//                    cartDetails = Collections.emptyList();
+//                }
+
             // Kiểm tra kết quả giao dịch
+
+            // vnp_ResponseCode="24" = Khách hàng hủy
             if ("00".equals(vnpParams.get("vnp_ResponseCode"))) {
                 String orderId  = vnpParams.get("vnp_TxnRef");
-                orderService.updateStatus(orderId, "Paid");
+                orderService.updateStatus(orderId, "CLH");
                 return ResponseEntity.ok(Map.of("EC", 0, "MS", "Payment successfully."));
-            } else {
+            } else if ("24".equals(vnpParams.get("vnp_ResponseCode"))){
+                String orderId = vnpParams.get("vnp_TxnRef");
+                orderService.updateStatus(orderId, "HTT");
+                return ResponseEntity.ok(Map.of("EC", 0, "MS", "Customer cancel payment."));
+            }else {
                 return ResponseEntity.ok(Map.of("EC", 1, "MS", "Payment failed", "code", vnpParams.get("vnp_ResponseCode")));
             }
 

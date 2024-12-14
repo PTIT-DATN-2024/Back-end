@@ -31,8 +31,8 @@ public class CategoryService {
             }
 
             Category category = new Category();
-//            category.setCategoryId(UUID.randomUUID().toString());
-            category.setCategoryId("cate007");
+            category.setCategoryId(UUID.randomUUID().toString());
+            //category.setCategoryId("cate007");
             category.setName(name);
             category.setDescription(description);
 

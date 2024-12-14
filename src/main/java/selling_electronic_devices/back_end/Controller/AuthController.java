@@ -173,8 +173,8 @@ public class AuthController {
 
                     // Tạo mới nếu email chưa tồn tại
                     Customer customer = new Customer();
-                    //customer.setCustomerId(UUID.randomUUID().toString());
-                    customer.setCustomerId("cust007");
+                    customer.setCustomerId(UUID.randomUUID().toString());
+                    //customer.setCustomerId("cust007");
                     customer.setEmail(signupRequest.getEmail());
                     customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
                     customer.setUserName("CUS" + System.currentTimeMillis());

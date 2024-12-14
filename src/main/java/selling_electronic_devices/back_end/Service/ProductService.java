@@ -40,8 +40,8 @@ public class ProductService {
             Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
             if (optionalCategory.isPresent()) {
                 Product product = new Product();
-//                product.setProductId(UUID.randomUUID().toString());
-                product.setProductId("prod007");
+                product.setProductId(UUID.randomUUID().toString());
+                //product.setProductId("prod007");
                 product.setCategory(optionalCategory.get());
                 product.setProductDiscount(null);
                 product.setName(productDto.getName());
