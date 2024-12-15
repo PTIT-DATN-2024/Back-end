@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import selling_electronic_devices.back_end.Dto.CustomerDto;
+import selling_electronic_devices.back_end.Dto.SignupRequest;
 import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Service.CustomerService;
@@ -55,7 +56,7 @@ public class CustomerController {
     }
 
     @PutMapping("/{customerId}")
-    public ResponseEntity<?> updateUser(@PathVariable String customerId, @RequestBody CustomerDto customerDto) {
+    public ResponseEntity<?> updateUser(@PathVariable String customerId, @ModelAttribute SignupRequest customerDto) {
         Map<String, Object> response = new HashMap<>();
         try {
             boolean isUpdated = customerService.updateCustomer(customerId, customerDto);

@@ -11,7 +11,7 @@ public class SignupRequest {
     private String username;
     private String fullName;
     private String role;
-    private MultipartFile avatar;
+    private MultipartFile avatar = null;
 
     public SignupRequest(String email, String password, String address, String phone, String username, String fullName, String role, MultipartFile avatar) {
         this.email = email;
