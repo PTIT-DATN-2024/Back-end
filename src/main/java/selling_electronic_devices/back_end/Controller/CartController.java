@@ -52,7 +52,7 @@ public class CartController {
             @RequestParam(defaultValue = "10000") int limit) {
 
         try {
-            if (customerId == null || customerId.isEmpty() || !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
+            if (customerId == null || customerId.isEmpty()){ //|| !customerId.matches("[a-zA-Z0-9]+")) {  // bắt exception từ trong (TH ko bị invalid thì work bthuong):  cả khi invalid param ==> thêm "required = false" để cho phép continue vào trong - ngay cả khi invalid parameter.
                 throw new IllegalArgumentException("Invalid customerId format.");
             }
 
