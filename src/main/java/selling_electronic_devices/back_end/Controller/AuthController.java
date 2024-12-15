@@ -80,23 +80,30 @@ public class AuthController {
         Customer customer = customerRepository.findByEmail(authenticationRequest.getEmail());
         Admin admin = adminRepository.findByEmail(authenticationRequest.getEmail());
         Staff staff = staffRepository.findByEmail(authenticationRequest.getEmail());
-        String id = "", role = "";
+        Object user = null;
+        String id = "", role = "", avatar= "";
         if (admin != null) {
             id = admin.getAdminId();
             role = admin.getRole();
+            avatar = admin.getAvatar();
+            user = admin;
         } else if (staff != null) {
             id = staff.getStaffId();
             role = staff.getRole();
+            avatar = staff.getAvatar();
+            user = staff;
         } else if (customer != null) {
             id = customer.getCustomerId();
             role = customer.getRole();
+            avatar = customer.getAvatar();
+            user = customer;
         }
 
         // Tạo jwt
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        LoginResponse loginResponse = new LoginResponse(jwt, id, authenticationRequest.getEmail(), role, "1728958738001.jpg");
+        LoginResponse loginResponse = new LoginResponse(jwt, id, authenticationRequest.getEmail(), role, avatar, user);
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Login Successfully.");
@@ -124,9 +131,9 @@ public class AuthController {
                     admin.setAdminId(UUID.randomUUID().toString());
                     admin.setEmail(signupRequest.getEmail());
                     admin.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                    admin.setUsername("name" + System.currentTimeMillis());
-                    admin.setFullName("adm" + System.currentTimeMillis());
-//            admin.setAddress("Ha Noi");
+                    admin.setUsername(signupRequest.getUsername());//setUsername("name" + System.currentTimeMillis());
+                    admin.setFullName(signupRequest.getFullName());
+                    admin.setAddress(signupRequest.getAddress());
                     admin.setRole("ADMIN");
                     admin.setPhone(signupRequest.getPhone());
                     admin.setIsDelete("False");
@@ -150,9 +157,9 @@ public class AuthController {
                     staff.setStaffId(UUID.randomUUID().toString());
                     staff.setEmail(signupRequest.getEmail());
                     staff.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                    staff.setUsername("name" + System.currentTimeMillis());
-                    staff.setFullName("staff" + System.currentTimeMillis());
-//            staff.setAddress("Ha Noi");
+                    staff.setUsername(signupRequest.getUsername());
+                    staff.setFullName(signupRequest.getFullName());
+                    staff.setAddress(signupRequest.getAddress());
                     staff.setRole("STAFF");
                     staff.setPhone(signupRequest.getPhone());
                     staff.setIsDelete("False");
@@ -177,9 +184,9 @@ public class AuthController {
                     //customer.setCustomerId("cust007");
                     customer.setEmail(signupRequest.getEmail());
                     customer.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-                    customer.setUserName("CUS" + System.currentTimeMillis());
-                    customer.setFullName("customer" + System.currentTimeMillis());
-                    customer.setAddress("Ha Noi");
+                    customer.setUsername(signupRequest.getUsername());
+                    customer.setFullName(signupRequest.getFullName());
+                    customer.setAddress(signupRequest.getAddress());
                     customer.setRole("CUSTOMER");
                     customer.setPhone(signupRequest.getPhone());
                     customer.setIsDelete("False");

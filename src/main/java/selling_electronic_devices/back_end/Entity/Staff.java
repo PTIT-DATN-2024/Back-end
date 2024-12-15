@@ -29,6 +29,9 @@ public class Staff {
     @Column(name = "full_name")
     private String fullName;
 
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "avatar")
     private String avatar;
 
@@ -93,6 +96,14 @@ public class Staff {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getAvatar() {

@@ -30,6 +30,9 @@ public class Admin {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "email", unique = true)
     private String email;
 
@@ -91,6 +94,14 @@ public class Admin {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getEmail() {

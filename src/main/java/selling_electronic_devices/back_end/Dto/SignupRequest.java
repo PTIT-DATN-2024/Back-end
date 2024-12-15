@@ -8,14 +8,18 @@ public class SignupRequest {
     private String password;
     private String address;
     private String phone;
+    private String username;
+    private String fullName;
     private String role;
     private MultipartFile avatar;
 
-    public SignupRequest(String email, String password, String address, String phone, String role, MultipartFile avatar) {
+    public SignupRequest(String email, String password, String address, String phone, String username, String fullName, String role, MultipartFile avatar) {
         this.email = email;
         this.password = password;
         this.address = address;
         this.phone = phone;
+        this.username = username;
+        this.fullName = fullName;
         this.role = role;
         this.avatar = avatar;
     }
@@ -50,6 +54,22 @@ public class SignupRequest {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getRole() {
