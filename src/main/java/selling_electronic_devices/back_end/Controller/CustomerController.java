@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import selling_electronic_devices.back_end.Dto.CustomerDto;
 import selling_electronic_devices.back_end.Dto.SignupRequest;
 import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
@@ -56,10 +55,10 @@ public class CustomerController {
     }
 
     @PutMapping("/{customerId}")
-    public ResponseEntity<?> updateUser(@PathVariable String customerId, @ModelAttribute SignupRequest customerDto) {
+    public ResponseEntity<?> updateUser(@PathVariable String customerId, @ModelAttribute SignupRequest updateDto) {
         Map<String, Object> response = new HashMap<>();
         try {
-            boolean isUpdated = customerService.updateCustomer(customerId, customerDto);
+            boolean isUpdated = customerService.updateInfoUser(customerId, updateDto);
             if (isUpdated) {
                 response.put("EC", 0);
                 response.put("MS", "Update user success!");

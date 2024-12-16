@@ -20,6 +20,14 @@ public class ProductReviewController {
     @Autowired
     private ProductReviewService productReviewService;
 
+    @GetMapping
+    public ResponseEntity<?> getAllProductReviews(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10000") int limit) {
+
+        return ResponseEntity.ok(productReviewService.getAllProductReviews(offset, limit));
+    }
+
     @PostMapping
     public ResponseEntity<?> createRating(@RequestBody ProductReviewDto productReviewDto) {
         Map<String, Object> response = new HashMap<>();
@@ -37,14 +45,6 @@ public class ProductReviewController {
             response.put("MS", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getAllProductReviews(
-            @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10000") int limit) {
-
-        return ResponseEntity.ok(productReviewService.getAllProductReviews(offset, limit));
     }
 
     @GetMapping("/product/{productId}")
