@@ -7,6 +7,7 @@ public class ProductReviewDto {
     private String customerId;
     private String productId;
     private String rating;
+    // private Integer rating;
     private String comment;
 
     public String getCustomerId() {
