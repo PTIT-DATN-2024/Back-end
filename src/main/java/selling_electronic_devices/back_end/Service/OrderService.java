@@ -152,13 +152,13 @@ public class OrderService {
                     for (DetailOrderedProduct detailOrderedProduct : detailOrderedProducts) {
                         Product product = detailOrderedProduct.getProduct();
 
-                        if (status.equals("CLH")) {
-                            if (product.getTotal() - detailOrderedProduct.getQuantity() == 0) {
-                                product.setStatus("Unavailable");
-                            }
-                            product.setTotal(product.getTotal() - detailOrderedProduct.getQuantity());
-                            productRepository.save(product);
-                        }
+//                        if (status.equals("CLH")) {
+//                            if (product.getTotal() - detailOrderedProduct.getQuantity() == 0) {
+//                                product.setStatus("Unavailable");
+//                            }
+//                            product.setTotal(product.getTotal() - detailOrderedProduct.getQuantity());
+//                            productRepository.save(product);
+//                        }
 
                         cartDetailRepository.deleteByCartAndProduct(cart, product);
 
