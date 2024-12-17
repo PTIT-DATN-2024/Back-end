@@ -96,7 +96,8 @@ public class ProductController {
             @RequestParam(value = "importPrice") Double importPrice,
             @RequestParam(value = "sellingPrice") Double sellingPrice,
             @RequestParam(value = "weight") String weight,
-//            @RequestParam(value = "productImageId") String productImageId,
+//            @RequestParam(value = "productImageIds") List<String> productImageIds,
+//            @RequestParam(value = "images") List<MultipartFile> images,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
 
         ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);

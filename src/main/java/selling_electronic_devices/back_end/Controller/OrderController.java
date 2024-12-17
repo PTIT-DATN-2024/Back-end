@@ -1,6 +1,7 @@
 package selling_electronic_devices.back_end.Controller;
 
 
+import jakarta.persistence.OptimisticLockException;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,8 +144,12 @@ public class OrderController {
             response.put("paymentUrl", paymentUrl);
             response.put("vnp_ReturnUrl", RETURN_URL);
             return ResponseEntity.ok(response);
+        } catch (OptimisticLockException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("EC", 1, "MS", "Optimistic Lock Exception: Product quantity was updated by another transaction.", "error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));
         }
     }
 

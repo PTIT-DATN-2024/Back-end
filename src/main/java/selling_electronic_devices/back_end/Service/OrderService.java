@@ -1,5 +1,6 @@
 package selling_electronic_devices.back_end.Service;
 
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
@@ -39,40 +40,64 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Transactional
     public Order createOrder(OrderDto orderDto) {
         Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
         Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
-        Order order;
-        if (optionalCustomer.isPresent() && optionalStaff.isPresent()) {
 
-            order = new Order();
-            order.setOrderId(UUID.randomUUID().toString());
-            order.setCustomer(optionalCustomer.get());
-            order.setStaff(optionalStaff.get());
-            order.setShipAddress("address");
-            order.setTotal(orderDto.getTotal());
-            order.setPaymentType("cash");
-            order.setStatus("CXN");
-
-            orderRepository.save(order);
-
-            // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
-            //List<CartDetailDto> items = orderDto.getCartDetails();
-            List<CartDetail> items = orderDto.getCartDetails();
-            for (CartDetail item : items) {
-                DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
-                detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
-                detailOrderedProduct.setOrder(order);
-                detailOrderedProduct.setProduct(item.getProduct());
-                //detailOrderedProduct.setProduct(optionalProduct.orElseGet(null));
-                detailOrderedProduct.setQuantity(item.getQuantity());
-                detailOrderedProduct.setTotalPrice(item.getTotalPrice());
-
-                detailOrderedProductRepository.save(detailOrderedProduct);
-            }
-        } else {
-            throw new RuntimeException();
+        if (optionalCustomer.isEmpty() || optionalStaff.isEmpty()) {
+            throw new RuntimeException("Invalid customer or staff ID.");
         }
+
+        Order order = new Order();
+        order.setOrderId(UUID.randomUUID().toString());
+        order.setCustomer(optionalCustomer.get());
+        order.setStaff(optionalStaff.get());
+        order.setShipAddress("address");
+        order.setTotal(orderDto.getTotal());
+        order.setPaymentType("cash");
+        order.setStatus("CXN");
+
+        orderRepository.save(order);
+
+        // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
+        //List<CartDetailDto> items = orderDto.getCartDetails();
+        List<CartDetail> items = orderDto.getCartDetails();
+        for (CartDetail item : items) {
+            //1. Cập nhật quantity
+            Product product = item.getProduct();
+
+            // check quantity hiện tại
+            if (product.getTotal() < item.getQuantity()) {
+                throw new IllegalArgumentException("Not enough stock for product: " + product.getProductId());
+            }
+
+            // cập nhật
+            product.setTotal(product.getTotal() - item.getQuantity());
+            try {
+                productRepository.save(product);
+            } catch (OptimisticLockException e) {
+                // check lại (read) lại quantity mới nhất
+                Product lastestProduct = productRepository.findById(product.getProductId()).orElseThrow();
+                if (lastestProduct.getTotal() >= item.getQuantity()) {
+                    lastestProduct.setTotal(lastestProduct.getTotal() - item.getQuantity());
+                    productRepository.save(lastestProduct);
+                } else {
+                    throw e; // không đủ hàng, ném ngoại ệ
+                }
+            }
+
+            // 2. Lưu các detail ordered product
+            DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
+            detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
+            detailOrderedProduct.setOrder(order);
+            detailOrderedProduct.setProduct(item.getProduct());
+            detailOrderedProduct.setQuantity(item.getQuantity());
+            detailOrderedProduct.setTotalPrice(item.getTotalPrice());
+
+            detailOrderedProductRepository.save(detailOrderedProduct);
+        }
+
 
         return order;
     }
