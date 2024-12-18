@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import selling_electronic_devices.back_end.Entity.Customer;
 import selling_electronic_devices.back_end.Entity.Order;
 import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.OrderRepository;
+import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Service.OrderService;
 
 import javax.crypto.Mac;
@@ -46,6 +48,9 @@ public class OrderController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto) {
         Map<String, Object> response = new HashMap<>();
@@ -71,6 +76,8 @@ public class OrderController {
         try {
             // Tạo đơn hàng mới
             Order order = orderService.createOrder(orderDto);
+
+            System.out.println("quantity after update:" + productRepository.findById("prod007").get().getTotal());
 
             // Tạo tham số VNPay
             String vnpCommand = "pay";
@@ -144,9 +151,22 @@ public class OrderController {
             response.put("paymentUrl", paymentUrl);
             response.put("vnp_ReturnUrl", RETURN_URL);
             return ResponseEntity.ok(response);
-        } catch (OptimisticLockException e) {
+        } catch (OptimisticLockingFailureException e) {
+            //Thread.sleep();
+            int maxAttempts = 0;
+            while (maxAttempts < 17) {  // Tăng số lần retry (or use "sleep" before update): nếu muốn xử lý được càng nhiều request đồng thời hơn thay vì ném ngoại lệ sớm BỞI VÌ: với số lần thử nhỏ << trong khi số request đồng thời lớn>> thì dẫn đến việc tất cả các lần thử vẫn bị DÍNH việc tương tranh với Transaction khác.
+                try {
+                    Order order1 = orderService.createOrder(orderDto);
+                    //update = true;
+                    return ResponseEntity.ok(Map.of("EC", 0, "MS", "Retry SUCCESS at number test = " + maxAttempts));
+                } catch (OptimisticLockingFailureException optimisticEx) {
+                    maxAttempts ++;
+                    continue;
+                }
+            }
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("EC", 1, "MS", "Optimistic Lock Exception: Product quantity was updated by another transaction.", "error", e.getMessage()));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));

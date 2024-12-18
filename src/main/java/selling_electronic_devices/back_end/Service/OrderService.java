@@ -1,10 +1,11 @@
 package selling_electronic_devices.back_end.Service;
 
-import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import selling_electronic_devices.back_end.Dto.OrderDto;
@@ -40,7 +41,101 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Transactional
+//    @Transactional
+//    public Order createOrder(OrderDto orderDto) {
+//        Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
+//        Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
+//
+//        if (optionalCustomer.isEmpty() || optionalStaff.isEmpty()) {
+//            throw new RuntimeException("Invalid customer or staff ID.");
+//        }
+//
+//        Order order = new Order();
+//        order.setOrderId(UUID.randomUUID().toString());
+//        order.setCustomer(optionalCustomer.get());
+//        order.setStaff(optionalStaff.get());
+//        order.setShipAddress("address");
+//        order.setTotal(orderDto.getTotal());
+//        order.setPaymentType("cash");
+//        order.setStatus("CXN");
+//
+//        orderRepository.save(order);
+//
+//        // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
+//        //List<CartDetailDto> items = orderDto.getCartDetails();
+//        List<CartDetail> items = orderDto.getCartDetails();
+//        for (CartDetail item : items) {
+//            System.out.println("Quantity Product : quantity item -> " + item.getProduct().getTotal() + " : " + item.getQuantity());
+////            //1. Cập nhật quantity
+////            Product product = item.getProduct();
+////
+////            // check quantity hiện tại
+////            if (product.getTotal() < item.getQuantity()) {
+////                throw new IllegalArgumentException("Not enough stock for product: " + product.getProductId());
+////            }
+////
+////            // cập nhật
+////            product.setTotal(product.getTotal() - item.getQuantity());
+////            try {
+////                productRepository.save(product);
+////            } catch (OptimisticLockingFailureException e) {
+//            // check lại (read) lại quantity mới nhất
+////                Product lastestProduct = productRepository.findById(product.getProductId()).orElseThrow();
+////                if (lastestProduct.getTotal() >= item.getQuantity()) {
+////                    lastestProduct.setTotal(lastestProduct.getTotal() - item.getQuantity());
+////                    productRepository.save(lastestProduct);
+////                } else {
+////                    throw e; // không đủ hàng, ném ngoại ệ
+////                }
+////            }
+//            retryUpdateProduct(item.getProduct(), item.getQuantity());
+//
+//            // 2. Lưu các detail ordered product
+//            DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
+//            detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
+//            detailOrderedProduct.setOrder(order);
+//            detailOrderedProduct.setProduct(item.getProduct());
+//            detailOrderedProduct.setQuantity(item.getQuantity());
+//            detailOrderedProduct.setTotalPrice(item.getTotalPrice());
+//
+//            detailOrderedProductRepository.save(detailOrderedProduct);
+//        }
+//
+//        return order;
+//    }
+//
+//    private void retryUpdateProduct(Product product, long quantity) {
+//        int attempts = 0;
+//        boolean updated = false;
+//
+//        while (!updated && attempts < 3) {
+//            try {
+//                if (product.getTotal() < quantity) {
+//                    throw new IllegalArgumentException("Not enough stock for product: " + product.getProductId());
+//                }
+//                product.setTotal(product.getTotal() - quantity);
+//                productRepository.save(product);
+//                updated = true;
+//                System.out.println("----------");
+//            } catch (OptimisticLockingFailureException e) {
+//                // Reload product for retry, version, quantity đã được update vì có bởi transaction trước đó đã write xong
+//                Product lastestProduct = productRepository.findById(product.getProductId()).orElseThrow();
+//                System.out.println("Total : Version after previous_transaction wrote: " + lastestProduct.getTotal() + " : " + lastestProduct.getVersion());
+//                if (lastestProduct.getTotal() >= quantity) {
+//                    lastestProduct.setTotal(lastestProduct.getTotal() - quantity);
+//                    productRepository.save(lastestProduct);
+//
+//                    attempts = 3;
+//                    updated = true;
+//                } else {
+//                    continue;
+//                }
+//            }
+//        }
+//    }
+
+    // Updated OrderService
+    @Transactional//(rollbackFor = {Exception.class}) // đảm bảo hủy bỏ mọi thao tác nếu có thao tác lôi <Atomic>
     public Order createOrder(OrderDto orderDto) {
         Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
         Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
@@ -60,34 +155,14 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        // lưu detailOrderedProduct từ các sản phầm customer chon để Order từ giỏ hàng-Cart (chi tiết dược lưu trong CartDetails)
-        //List<CartDetailDto> items = orderDto.getCartDetails();
         List<CartDetail> items = orderDto.getCartDetails();
         for (CartDetail item : items) {
-            //1. Cập nhật quantity
-            Product product = item.getProduct();
-
-            // check quantity hiện tại
-            if (product.getTotal() < item.getQuantity()) {
-                throw new IllegalArgumentException("Not enough stock for product: " + product.getProductId());
+            if (item.getQuantity() > item.getProduct().getTotal()) {
+                throw new IllegalArgumentException("Not enough stock for product: " + item.getProduct().getProductId());
             }
 
-            // cập nhật
-            product.setTotal(product.getTotal() - item.getQuantity());
-            try {
-                productRepository.save(product);
-            } catch (OptimisticLockException e) {
-                // check lại (read) lại quantity mới nhất
-                Product lastestProduct = productRepository.findById(product.getProductId()).orElseThrow();
-                if (lastestProduct.getTotal() >= item.getQuantity()) {
-                    lastestProduct.setTotal(lastestProduct.getTotal() - item.getQuantity());
-                    productRepository.save(lastestProduct);
-                } else {
-                    throw e; // không đủ hàng, ném ngoại ệ
-                }
-            }
+            retryUpdateProduct(item.getProduct().getProductId(), item.getQuantity());
 
-            // 2. Lưu các detail ordered product
             DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
             detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
             detailOrderedProduct.setOrder(order);
@@ -98,8 +173,25 @@ public class OrderService {
             detailOrderedProductRepository.save(detailOrderedProduct);
         }
 
-
         return order;
+    }
+
+//    @Retryable( // auto retry func catch khi excp value xảy ra
+//            value = OptimisticLockingFailureException.class,
+//            maxAttempts = 3,
+//            backoff = @Backoff(delay = 1000)
+//    )
+    public void retryUpdateProduct(String productId, Long quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+
+        if (product.getTotal() < quantity) {
+            throw new IllegalArgumentException("Not enough stock for product: " + productId);
+        }
+
+        product.setTotal(product.getTotal() - quantity);
+        productRepository.save(product);
+        System.out.println("quantity update = " + quantity);
     }
 
 

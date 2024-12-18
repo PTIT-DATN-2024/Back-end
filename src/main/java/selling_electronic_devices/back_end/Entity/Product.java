@@ -63,9 +63,9 @@ public class Product {
     @Column(name = "is_delete")
     private String isDelete;
 
-//    @Column(name = "version")
-//    @Version // sử dụng cơ chế Optimistic Locking
-//    private long version;
+    @Column(name = "version")
+    @Version // sử dụng cơ chế Optimistic Locking
+    private long version;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -194,13 +194,13 @@ public class Product {
         this.isDelete = isDelete;
     }
 
-//    public long getVersion() {
-//        return version;
-//    }
-//
-//    public void setVersion(long version) {
-//        this.version = version;
-//    }
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
