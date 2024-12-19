@@ -33,7 +33,7 @@ public class ProductService {
     private JdbcTemplate jdbcTemplate;
 
 
-    public Map<String, Object> createProduct(ProductDto productDto, MultipartFile avatar) {
+    public Map<String, Object> createProduct(ProductDto productDto, List<MultipartFile> avatars) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -59,21 +59,22 @@ public class ProductService {
                 // Lưu sản phẩm
                 productRepository.save(product);
 
-                // Lưu ảnh vào ProductImage
-                ProductImage productImage = new ProductImage();
-                productImage.setProductImageId(UUID.randomUUID().toString());
-                productImage.setProduct(product);
-
                 // Lưu file ảnh
-                String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
-                File avtFile = new File(avtPath);
+                for (MultipartFile avt : avatars) {
+                    // Lưu ảnh vào ProductImage
+                    ProductImage productImage = new ProductImage();
+                    productImage.setProductImageId(UUID.randomUUID().toString());
+                    productImage.setProduct(product);
 
-                avatar.transferTo(avtFile);
-                String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
-                productImage.setImage(urlAvtDb);
+                    String avtPath = "D:/electronic_devices/uploads/products/" + avt.getOriginalFilename();
+                    File avtFile = new File(avtPath);
 
-                productImageRepository.save(productImage);
+                    avt.transferTo(avtFile);
+                    String urlAvtDb = "http://localhost:8080/uploads/products/" + avt.getOriginalFilename();
+                    productImage.setImage(urlAvtDb);
 
+                    productImageRepository.save(productImage);
+                }
                 response.put("EC", 0);
                 response.put("MS", "Created product successfully.");
             } else {
@@ -121,7 +122,7 @@ public class ProductService {
         return response;
     }
 
-    public Map<String, Object> updateProduct(String productId, ProductDto productDto, MultipartFile avatar) {
+    public Map<String, Object> updateProduct(String productId, ProductDto productDto, List<String> productImageIds, List<MultipartFile> avatars) {
         Map<String, Object> response = new HashMap<>();
         Optional<Product> productOp = productRepository.findById(productId);
         Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
@@ -146,21 +147,27 @@ public class ProductService {
 
                 productRepository.save(product);
 
-                if (avatar != null && !avatar.isEmpty()) {
-                    String avtPath = "D:/electronic_devices/uploads/products/" + avatar.getOriginalFilename();
-                    File avtFile = new File(avtPath);
+                List<ProductImage> productImages = product.getProductImages();
 
-                    avatar.transferTo(avtFile);
-                    String urlAvtDb = "http://localhost:8080/uploads/products/" + avatar.getOriginalFilename();
+                int index = 0;
+                for(MultipartFile avt : avatars) {
+                    if (avt != null && !avt.isEmpty()) {
+                        String avtPath = "D:/electronic_devices/uploads/products/" + avt.getOriginalFilename();
+                        File avtFile = new File(avtPath);
 
-                    // lưu vào Product Image
-                    Optional<ProductImage> optionalProductImage = productImageRepository.findById("productImageId");
-                    optionalProductImage.ifPresent(productImage -> {
-                        ProductImage changeImage = optionalProductImage.get();
-                        changeImage.setImage(urlAvtDb);
+                        avt.transferTo(avtFile);
+                        String urlAvtDb = "http://localhost:8080/uploads/products/" + avt.getOriginalFilename();
 
-                        productImageRepository.save(changeImage);
-                    });
+                        // lưu vào Product Image
+                        Optional<ProductImage> optionalProductImage = productImageRepository.findById(productImageIds.get(index));
+                        optionalProductImage.ifPresent(productImage -> {
+                            ProductImage changeImage = optionalProductImage.get();
+                            changeImage.setImage(urlAvtDb);
+
+                            productImageRepository.save(changeImage);
+                        });
+                    }
+                    index++;
                 }
 
                 response.put("EC", 0);

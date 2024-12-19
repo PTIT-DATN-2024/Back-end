@@ -23,6 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -79,6 +80,111 @@ public class OrderController {
 
             System.out.println("quantity after update:" + productRepository.findById("prod007").get().getTotal());
 
+//            // Tạo tham số VNPay
+//            String vnpCommand = "pay";
+//            String orderId = order.getOrderId();
+//            String amount = String.valueOf((long) (order.getTotal() * 100));
+//            String locale = "vn";
+//            String currCode = "VND";
+//            String ipAddr = InetAddress.getLocalHost().getHostAddress();
+//
+//            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+//            SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+//            String createDate = formatter.format(calendar.getTime());
+////            String createDate = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+//            calendar.add(Calendar.MINUTE, 15);
+//            String vnp_ExpireDate = formatter.format(calendar.getTime());
+//
+//            //(dùng TreeMap -> tự sắp xếp)
+//            Map<String, String> vnpParams = new TreeMap<>();
+//            vnpParams.put("vnp_Version", VERSION);
+//            vnpParams.put("vnp_Command", vnpCommand);
+//            vnpParams.put("vnp_TmnCode", TMN_CODE);
+//            vnpParams.put("vnp_Amount", amount);
+//            vnpParams.put("vnp_CreateDate", createDate);
+//            vnpParams.put("vnp_CurrCode", currCode);
+//            vnpParams.put("vnp_IpAddr", ipAddr);
+//            vnpParams.put("vnp_Locale", locale);
+//            vnpParams.put("vnp_OrderInfo", "MaGD" + orderId);
+//            vnpParams.put("vnp_OrderType", "other");
+//            vnpParams.put("vnp_ReturnUrl", RETURN_URL);
+//            vnpParams.put("vnp_TxnRef", orderId);
+////            vnpParams.put("vnp_ExpireDate", vnp_ExpireDate);
+////            vnpParams.put("vnp_BankCode", "NCB");
+//
+//            /*### Tạo chữ ký 1: ban đầu dùng map(entry -> entry.getKey() + "=" + entry.getValue()).collection(Collectors.joining("&")) => bị lỗi sai chữ ký do Bên thứ 3(VNPay) kiểm tra chữ ký dựa theo tham số ĐÃ MÃ HÓA --> Nếu ko mã hóa sẽ dẫn đến Chữ ký mà Server tạo ra KHÔNG KHỚP VỚI CHỮ ký của VNPay*/
+//            // Hiểu một cách đơn giản: VNPay sau khi nhận vnParams -> nó cũng tạo ra signatureVNP theo tt của nó -> sau đó nó đem signatureVNP compare với signature của ta
+//            // Mà VNPay nó tạo signatureVNP theo các thông số đã được mã hóa trước >><<< còn ta lại ko ===> 2 signature không khớp
+//           String queryString = vnpParams.entrySet().stream()
+//                   .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "=" +
+//                                 URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
+//                   .collect(Collectors.joining("&"));
+//
+//            // Tạo chữ ký 2
+////            StringBuilder queryString1 = new StringBuilder(0 );
+////            for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+////                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+////                    if (queryString1.length() > 0) {
+////                        queryString1.append("&");
+////                    }
+////                    queryString1.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
+////                            .append("=")
+////                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
+////                }
+////            }
+//
+//            Mac hmac = Mac.getInstance("HmacSHA512");
+//            hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
+////            String signature = new String(Hex.encode(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)))); // hoặc dùng encodeHexString của Apache Commons Codec
+//
+//            // Mã hóa hex (dùng Apache Commons Codec)
+//            String signature = Hex.encodeHexString(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)));
+//            vnpParams.put("vnp_SecureHash", signature);
+//
+//            // Tạo URL thanh toán
+//            String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + vnpParams.entrySet().stream()
+//                    .map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining("&"));
+
+            // Trả về kết quả
+            String paymentUrl = createUrlPayment(order);
+            Map<String, Object> response = new HashMap<>();
+            response.put("EC", 0);
+            response.put("MS", "Success");
+            response.put("paymentUrl", paymentUrl);
+            response.put("vnp_ReturnUrl", RETURN_URL);
+            return ResponseEntity.ok(response);
+        } catch (OptimisticLockingFailureException e) {
+            //Thread.sleep();
+            int maxAttempts = 0;
+            while (maxAttempts < 17) {  // Tăng số lần retry (or use "sleep" before update): nếu muốn xử lý được càng nhiều request đồng thời hơn thay vì ném ngoại lệ sớm BỞI VÌ: với số lần thử nhỏ << trong khi số request đồng thời lớn>> thì dẫn đến việc tất cả các lần thử vẫn bị DÍNH việc tương tranh với Transaction khác.
+                try {
+                    Order orderRetry = orderService.createOrder(orderDto);
+                    String paymentUrl = createUrlPayment(orderRetry);
+
+                    return ResponseEntity.ok(Map.of(
+                            "EC", 0,
+                            "MS","Retry SUCCESS at number test = " + maxAttempts,
+                            "paymentUrl", paymentUrl,
+                            "vnp_ReturnUrl", RETURN_URL));
+                } catch (OptimisticLockingFailureException optimisticEx) {
+                    maxAttempts ++;
+                    continue;
+                } catch (Exception exception) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", exception.getMessage()));
+                }
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("EC", 1, "MS", "Optimistic Lock Exception: Product quantity was updated by another transaction.", "error", e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));
+        }
+    }
+
+    public static String createUrlPayment(Order order) {
+        try {
             // Tạo tham số VNPay
             String vnpCommand = "pay";
             String orderId = order.getOrderId();
@@ -114,27 +220,27 @@ public class OrderController {
             /*### Tạo chữ ký 1: ban đầu dùng map(entry -> entry.getKey() + "=" + entry.getValue()).collection(Collectors.joining("&")) => bị lỗi sai chữ ký do Bên thứ 3(VNPay) kiểm tra chữ ký dựa theo tham số ĐÃ MÃ HÓA --> Nếu ko mã hóa sẽ dẫn đến Chữ ký mà Server tạo ra KHÔNG KHỚP VỚI CHỮ ký của VNPay*/
             // Hiểu một cách đơn giản: VNPay sau khi nhận vnParams -> nó cũng tạo ra signatureVNP theo tt của nó -> sau đó nó đem signatureVNP compare với signature của ta
             // Mà VNPay nó tạo signatureVNP theo các thông số đã được mã hóa trước >><<< còn ta lại ko ===> 2 signature không khớp
-           String queryString = vnpParams.entrySet().stream()
-                   .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "=" +
-                                 URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
-                   .collect(Collectors.joining("&"));
+            String queryString = vnpParams.entrySet().stream()
+                    .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII) + "=" +
+                            URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
+                    .collect(Collectors.joining("&"));
 
-            // Tạo chữ ký 2
-//            StringBuilder queryString1 = new StringBuilder(0 );
-//            for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
-//                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-//                    if (queryString1.length() > 0) {
-//                        queryString1.append("&");
-//                    }
-//                    queryString1.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
-//                            .append("=")
-//                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
-//                }
-//            }
+        /* Tạo chữ ký 2
+            StringBuilder queryString1 = new StringBuilder(0 );
+            for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                    if (queryString1.length() > 0) {
+                        queryString1.append("&");
+                    }
+                    queryString1.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
+                            .append("=")
+                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
+                }
+            }*/
 
             Mac hmac = Mac.getInstance("HmacSHA512");
             hmac.init(new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
-//            String signature = new String(Hex.encode(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)))); // hoặc dùng encodeHexString của Apache Commons Codec
+            //String signature = new String(Hex.encode(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)))); // hoặc dùng encodeHexString của Apache Commons Codec
 
             // Mã hóa hex (dùng Apache Commons Codec)
             String signature = Hex.encodeHexString(hmac.doFinal(queryString.getBytes(StandardCharsets.UTF_8)));
@@ -144,32 +250,9 @@ public class OrderController {
             String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?" + vnpParams.entrySet().stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining("&"));
 
-            // Trả về kết quả
-            Map<String, Object> response = new HashMap<>();
-            response.put("EC", 0);
-            response.put("MS", "Success");
-            response.put("paymentUrl", paymentUrl);
-            response.put("vnp_ReturnUrl", RETURN_URL);
-            return ResponseEntity.ok(response);
-        } catch (OptimisticLockingFailureException e) {
-            //Thread.sleep();
-            int maxAttempts = 0;
-            while (maxAttempts < 17) {  // Tăng số lần retry (or use "sleep" before update): nếu muốn xử lý được càng nhiều request đồng thời hơn thay vì ném ngoại lệ sớm BỞI VÌ: với số lần thử nhỏ << trong khi số request đồng thời lớn>> thì dẫn đến việc tất cả các lần thử vẫn bị DÍNH việc tương tranh với Transaction khác.
-                try {
-                    Order order1 = orderService.createOrder(orderDto);
-                    //update = true;
-                    return ResponseEntity.ok(Map.of("EC", 0, "MS", "Retry SUCCESS at number test = " + maxAttempts));
-                } catch (OptimisticLockingFailureException optimisticEx) {
-                    maxAttempts ++;
-                    continue;
-                }
-            }
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("EC", 1, "MS", "Optimistic Lock Exception: Product quantity was updated by another transaction.", "error", e.getMessage()));
-
+            return paymentUrl;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", e.getMessage()));
+            throw new RuntimeException("Error generating payment URL", e);
         }
     }
 

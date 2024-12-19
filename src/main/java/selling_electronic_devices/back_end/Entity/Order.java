@@ -42,6 +42,19 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public Order() {
+    }
+
+    public Order(String orderId, Customer customer, Staff staff, String shipAddress, Double total, String paymentType, String status) {
+        this.orderId = orderId;
+        this.customer = customer;
+        this.staff = staff;
+        this.shipAddress = shipAddress;
+        this.total = total;
+        this.paymentType = paymentType;
+        this.status = status;
+    }
+
     public String getOrderId() {
         return orderId;
     }
