@@ -2,7 +2,6 @@ package selling_electronic_devices.back_end.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Fetch;
 
 @Entity
 @Table(name = "detail_ordered_products")
@@ -26,6 +25,17 @@ public class DetailOrderedProduct {
 
     @Column(name = "total_price", columnDefinition = "NUMERIC(10, 2)")
     private Double totalPrice;
+
+    public DetailOrderedProduct() {
+    }
+
+    public DetailOrderedProduct(String detailOrderProductId, Product product, Order order, Long quantity, Double totalPrice) {
+        this.detailOrderProductId = detailOrderProductId;
+        this.product = product;
+        this.order = order;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+    }
 
     public String getDetailOrderProductId() {
         return detailOrderProductId;

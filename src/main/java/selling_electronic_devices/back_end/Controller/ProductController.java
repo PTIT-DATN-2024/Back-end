@@ -1,5 +1,7 @@
 package selling_electronic_devices.back_end.Controller;
 
+import org.apache.coyote.Request;
+import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
@@ -32,17 +34,21 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProduct( // @ModelAttribute
-            @RequestParam("categoryId") String categoryId,
-            @RequestParam("name") String name,
-            @RequestParam("total") Long total,
-            @RequestParam("description") String description,
-            @RequestParam("importPrice") Double importPrice,
-            @RequestParam("sellingPrice") Double sellingPrice,
-            @RequestParam("weight") String weight,
-            @RequestParam("avatar") MultipartFile avatar) {
+            @RequestParam(value = "categoryId") String categoryId,
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "total") Long total,
+            @RequestParam(value = "description") String description,
+            @RequestParam(value = "importPrice") Double importPrice,
+            @RequestParam(value = "sellingPrice") Double sellingPrice,
+            @RequestParam(value = "weight") String weight,
+            @RequestParam(value = "avatar") MultipartFile avatar,
+            @RequestParam(value = "avatar1") MultipartFile avatar1,
+            @RequestParam(value = "avatar2") MultipartFile avatar2) {
 
         ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
-        return ResponseEntity.ok(productService.createProduct(productDto, avatar));
+        List<MultipartFile> avatars = new ArrayList<>(Arrays.asList(avatar, avatar1, avatar2));
+        //Collections.addAll(avatars, avatar, avatar1, avatar2);
+        return ResponseEntity.ok(productService.createProduct(productDto, avatars));
     }
 
     @GetMapping
@@ -98,10 +104,19 @@ public class ProductController {
             @RequestParam(value = "weight") String weight,
 //            @RequestParam(value = "productImageIds") List<String> productImageIds,
 //            @RequestParam(value = "images") List<MultipartFile> images,
-            @RequestParam(value = "avatar", required = false) MultipartFile avatar) {
+            @RequestParam(value = "productImageId") String productImageId,
+            @RequestParam(value = "productImageId1") String productImageId1,
+            @RequestParam(value = "productImageId2") String productImageId2,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar,
+            @RequestParam(value = "avatar1", required = false) MultipartFile avatar1,
+            @RequestParam(value = "avatar2", required = false) MultipartFile avatar2) {
 
         ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight);
-        return ResponseEntity.ok(productService.updateProduct(productId, productDto, avatar)); // productImageId
+        List<String> productImageIds = new ArrayList<>(Arrays.asList(productImageId, productImageId1, productImageId2));
+        List<MultipartFile> avatars = new ArrayList<>();
+        Collections.addAll(avatars, avatar, avatar1, avatar2);
+
+        return ResponseEntity.ok(productService.updateProduct(productId, productDto, productImageIds, avatars)); // productImageId
     }
 
     @DeleteMapping("/{productId}")

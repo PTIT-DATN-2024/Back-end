@@ -1,11 +1,8 @@
 package selling_electronic_devices.back_end.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import selling_electronic_devices.back_end.Dto.OrderDto;
@@ -16,7 +13,6 @@ import java.util.*;
 
 @Service
 public class OrderService {
-
 
     @Autowired
     private CartRepository cartRepository;
@@ -35,8 +31,6 @@ public class OrderService {
 
     @Autowired
     private StaffRepository staffRepository;
-
-
 
     @Autowired
     private ProductRepository productRepository;
@@ -137,21 +131,23 @@ public class OrderService {
     // Updated OrderService
     @Transactional//(rollbackFor = {Exception.class}) // đảm bảo hủy bỏ mọi thao tác nếu có thao tác lôi <Atomic>
     public Order createOrder(OrderDto orderDto) {
-        Optional<Customer> optionalCustomer = customerRepository.findById(orderDto.getCustomerId());
-        Optional<Staff> optionalStaff = staffRepository.findById(orderDto.getStaffId());
+        Customer customer = customerRepository.findById(orderDto.getCustomerId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid customer ID: " + orderDto.getCustomerId()));
+        Staff staff = staffRepository.findById(orderDto.getStaffId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid staff ID: " + orderDto.getStaffId()));
 
-        if (optionalCustomer.isEmpty() || optionalStaff.isEmpty()) {
-            throw new RuntimeException("Invalid customer or staff ID.");
-        }
+//        if (optionalCustomer.isEmpty() || optionalStaff.isEmpty()) {
+//            throw new RuntimeException("Invalid customer or staff ID.");
+//        }
 
-        Order order = new Order();
-        order.setOrderId(UUID.randomUUID().toString());
-        order.setCustomer(optionalCustomer.get());
-        order.setStaff(optionalStaff.get());
-        order.setShipAddress("address");
-        order.setTotal(orderDto.getTotal());
-        order.setPaymentType("cash");
-        order.setStatus("CXN");
+        Order order = new Order(UUID.randomUUID().toString(), customer, staff, "Address", orderDto.getTotal(), "Cash", "CXN");
+//        order.setOrderId(UUID.randomUUID().toString());
+//        order.setCustomer(optionalCustomer.get());
+//        order.setStaff(optionalStaff.get());
+//        order.setShipAddress("address");
+//        order.setTotal(orderDto.getTotal());
+//        order.setPaymentType("cash");
+//        order.setStatus("CXN");
 
         orderRepository.save(order);
 
@@ -161,15 +157,14 @@ public class OrderService {
                 throw new IllegalArgumentException("Not enough stock for product: " + item.getProduct().getProductId());
             }
 
-            retryUpdateProduct(item.getProduct().getProductId(), item.getQuantity());
+            updateTotalProduct(item.getProduct().getProductId(), item.getQuantity());
 
-            DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct();
-            detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
-            detailOrderedProduct.setOrder(order);
-            detailOrderedProduct.setProduct(item.getProduct());
-            detailOrderedProduct.setQuantity(item.getQuantity());
-            detailOrderedProduct.setTotalPrice(item.getTotalPrice());
-
+            DetailOrderedProduct detailOrderedProduct = new DetailOrderedProduct(UUID.randomUUID().toString(), item.getProduct(), order, item.getQuantity(), item.getTotalPrice());
+//            detailOrderedProduct.setDetailOrderProductId(UUID.randomUUID().toString());
+//            detailOrderedProduct.setOrder(order);
+//            detailOrderedProduct.setProduct(item.getProduct());
+//            detailOrderedProduct.setQuantity(item.getQuantity());
+//            detailOrderedProduct.setTotalPrice(item.getTotalPrice());
             detailOrderedProductRepository.save(detailOrderedProduct);
         }
 
@@ -181,7 +176,7 @@ public class OrderService {
 //            maxAttempts = 3,
 //            backoff = @Backoff(delay = 1000)
 //    )
-    public void retryUpdateProduct(String productId, Long quantity) {
+    public void updateTotalProduct(String productId, Long quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
 
