@@ -11,5 +11,5 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
     // FUNCTION('YEAR', field) -> EXTRACT(YEAR FROM field)
     @Query("SELECT COUNT(c) FROM Category c WHERE EXTRACT(YEAR FROM c.createdAt) = :year " +
             "AND (:month IS NULL OR EXTRACT(MONTH FROM c.createdAt) = :month)")
-    Long countTotalCategories(@Param("year") int year);
+    Long countTotalCategories(@Param("year") int year, @Param("month") Integer month);
 }
