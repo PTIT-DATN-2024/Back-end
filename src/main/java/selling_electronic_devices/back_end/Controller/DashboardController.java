@@ -8,6 +8,7 @@ import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.OrderRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 @RestController
@@ -26,27 +27,29 @@ public class DashboardController {
     private CategoryRepository categoryRepository;
 
     @PostMapping
-    public ResponseEntity<?> getStats(//@RequestParam (value = "startDay") LocalDateTime startDay,
-                                      //@RequestParam(value = "endDay") LocalDateTime endDay,
+    public ResponseEntity<?> getStats(
+                                      @RequestParam(value = "month", required = false) Integer month,
                                       @RequestParam(value = "year") int year) {
 
         Map<String, Object> response = new HashMap<>();
-        response.put("totalOrders", orderRepository.countTotalOrders(year));
-        response.put("totalCompleteOrders", orderRepository.countTotalCompleteOrders(year));
-        response.put("totalCancelOrders", orderRepository.countTotalCancelOrders(year));
+        response.put("totalOrders", orderRepository.countTotalOrders(year, month));
+        response.put("totalCompleteOrders", orderRepository.countTotalCompleteOrders(year, month));
+        response.put("totalCancelOrders", orderRepository.countTotalCancelOrders(year, month));
         response.put("totalCustomers", customerRepository.countTotalCustomers(year));
         response.put("totalProducts", productRepository.countTotalProducts(year));
         response.put("totalCategories", categoryRepository.countTotalCategories(year));
-        response.put("totalRevenue", orderRepository.calculateTotalRevenue(year));
+        response.put("totalRevenue", orderRepository.calculateTotalRevenue(year, month));
 
-        List<Integer> labels = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
-        List<Long> revenues = new ArrayList<>();
-        Collections.addAll(revenues, 1L, null, 3L, 4L, null, 6L, 7L, 8L, 9L, 10L, 12L);
-        response.put("labels", labels); // 12 thang của năm
-        response.put("revenues", orderRepository.statsRevenueAndMonthOfYear(year)); // 12 giá trị revenue tương ứng
-        response.put("topSpent", orderRepository.findTop10CustomersByTotalSpent(year)); // 12 thang của năm
+//        List<Integer> labels = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
+//        List<Long> revenues = new ArrayList<>();
+//        Collections.addAll(revenues, 1L, null, 3L, 4L, null, 6L, 7L, 8L, 9L, 10L, 12L);
+//        response.put("labels", labels); // 12 thang của năm
+        response.put("revenues", orderRepository.statsRevenueAndMonthOfYear(year, month)); // 12 giá trị revenue tương ứng
+        response.put("topSpent", orderRepository.findTop10CustomersByTotalSpent(year, month)); // 12 thang của năm
 //        response.put("topBestSellers", productRepository.listBestSellers(yearStats));
 
+        response.put("EC", 0);
+        response.put("MS", "Success");
         return ResponseEntity.ok(response);
     }
 

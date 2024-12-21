@@ -25,7 +25,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     Page<Product> findByCategory(Category category, Pageable pageable);
 
-    @Query("SELECT COUNT(p) FROM Product p WHERE EXTRACT(YEAR FROM p.createdAt) = :year")
+    @Query("SELECT COUNT(p) FROM Product p WHERE EXTRACT(YEAR FROM p.createdAt) = :year " +
+            "AND (:month IS NULL OR EXTRACT(MONTH FROM p.createdAt) = :month) ")
     Long countTotalProducts(@Param("year") int year);
 
 //    @Query("SELECT p FROM Product ORDER BY numberVote DESC")
