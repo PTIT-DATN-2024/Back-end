@@ -27,7 +27,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
 
     @Query("SELECT COUNT(p) FROM Product p WHERE EXTRACT(YEAR FROM p.createdAt) = :year " +
             "AND (:month IS NULL OR EXTRACT(MONTH FROM p.createdAt) = :month) ")
-    Long countTotalProducts(@Param("year") int year);
+    Long countTotalProducts(@Param("year") int year, @Param("month") Integer month);
 
 //    @Query("SELECT p FROM Product ORDER BY numberVote DESC")
 //    List<Product> listBestSellers(int yearStats);

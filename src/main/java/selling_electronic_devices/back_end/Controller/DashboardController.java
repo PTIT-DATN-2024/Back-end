@@ -28,16 +28,16 @@ public class DashboardController {
 
     @PostMapping
     public ResponseEntity<?> getStats(
-                                      @RequestParam(value = "month", required = false) Integer month,
-                                      @RequestParam(value = "year") int year) {
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "year") int year) {
 
         Map<String, Object> response = new HashMap<>();
         response.put("totalOrders", orderRepository.countTotalOrders(year, month));
         response.put("totalCompleteOrders", orderRepository.countTotalCompleteOrders(year, month));
         response.put("totalCancelOrders", orderRepository.countTotalCancelOrders(year, month));
-        response.put("totalCustomers", customerRepository.countTotalCustomers(year));
-        response.put("totalProducts", productRepository.countTotalProducts(year));
-        response.put("totalCategories", categoryRepository.countTotalCategories(year));
+        response.put("totalCustomers", customerRepository.countTotalCustomers(year, month));
+        response.put("totalProducts", productRepository.countTotalProducts(year, month));
+        response.put("totalCategories", categoryRepository.countTotalCategories(year, month));
         response.put("totalRevenue", orderRepository.calculateTotalRevenue(year, month));
 
 //        List<Integer> labels = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
