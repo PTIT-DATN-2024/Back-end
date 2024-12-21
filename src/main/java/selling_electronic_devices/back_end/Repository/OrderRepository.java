@@ -40,19 +40,27 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     Double calculateTotalRevenue(@Param("year") int year, @Param("month") Integer month);
 
     // trả về list customer kèm totalSpent
-    @Query("SELECT new selling_electronic_devices.back_end.Dto.TopSpentDto(o.customer, SUM(o.total)) " +
+    @Query("SELECT o.customer, SUM(o.total) " +
             "FROM Order o " +
             "WHERE EXTRACT(YEAR FROM o.createdAt) = :year " +
             "AND (:month IS NULL OR EXTRACT(MONTH FROM o.createdAt) = :month) " +
             "GROUP BY o.customer " +
             "ORDER BY SUM(o.total) DESC ")
-    List<TopSpentDto> findTop10CustomersByTotalSpent(@Param("year") int year, @Param("month") Integer month); // mỗi phần tử của Object[] gồm {customer và totalSpent)
+    List<Object[]> findTop10CustomersByTotalSpent(@Param("year") int year, @Param("month") Integer month); // mỗi phần tử của Object[] gồm {customer và totalSpent)
 
-    @Query("SELECT new selling_electronic_devices.back_end.Dto.RevenueDto(EXTRACT(MONTH FROM o.createdAt), SUM(o.total)) " + // do JPQL unsupported alias nên ko để as month được
+    @Query("SELECT EXTRACT(MONTH FROM o.createdAt), SUM(o.total) " + // do JPQL unsupported alias nên ko để as month được
             "FROM Order o " +
             "WHERE EXTRACT(YEAR FROM o.createdAt) = :year " +
             "AND (:month IS NULL OR EXTRACT(MONTH FROM o.createdAt) = :month) " +
             "GROUP BY EXTRACT(MONTH FROM o.createdAt) " +
             "ORDER BY EXTRACT(MONTH FROM o.createdAt) ASC") // theo thứ tự tháng 1, 2, 3 ... 12
-    List<RevenueDto> statsRevenueAndMonthOfYear(@Param("year") int year, @Param("month") Integer month);
+    List<Object[]> statsRevenueAndMonthOfYear(@Param("year") int year, @Param("month") Integer month);
+
+    /*@Query("SELECT new selling_electronic_devices.back_end.Dto.TopSpentDto(o.customer, SUM(o.total)) " +
+            "FROM Order o " +
+            "WHERE EXTRACT(YEAR FROM o.createdAt) = :year " +
+            "AND (:month IS NULL OR EXTRACT(MONTH FROM o.createdAt) = :month) " +
+            "GROUP BY o.customer " +
+            "ORDER BY SUM(o.total) DESC ")
+    List<TopSpentDto> findTop10CustomersByTotalSpent(@Param("year") int year, @Param("month") Integer month);*/
 }

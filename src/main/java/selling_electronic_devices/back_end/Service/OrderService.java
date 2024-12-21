@@ -6,10 +6,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import selling_electronic_devices.back_end.Dto.OrderDto;
+import selling_electronic_devices.back_end.Dto.RevenueDto;
+import selling_electronic_devices.back_end.Dto.TopSpentDto;
 import selling_electronic_devices.back_end.Entity.*;
 import selling_electronic_devices.back_end.Repository.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -274,5 +277,28 @@ public class OrderService {
                 }
         );
 
+    }
+
+
+    public List<RevenueDto> statsRevenueAndMonthOfYear(int year, Integer month) {
+        List<Object[]> stats = orderRepository.statsRevenueAndMonthOfYear(year, month);
+        List<RevenueDto> revenues = stats.stream()
+                .map(result -> new RevenueDto(
+                        (Integer) result[0],
+                        (Double) result[1]
+                )).collect(Collectors.toList());
+
+        return revenues;
+    }
+
+    public List<TopSpentDto> findTop10CustomersByTotalSpent(int year, Integer month) {
+        List<Object[]> stats = orderRepository.findTop10CustomersByTotalSpent(year, month);
+        List<TopSpentDto> topSpents = stats.stream()
+                .map(result -> new TopSpentDto(
+                        (Customer) result[0],
+                        (Double) result[1]
+                )).collect(Collectors.toList());//.toList();
+
+        return topSpents;
     }
 }
