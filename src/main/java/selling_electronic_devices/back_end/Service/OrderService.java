@@ -13,6 +13,7 @@ import selling_electronic_devices.back_end.Repository.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class OrderService {
@@ -282,11 +283,20 @@ public class OrderService {
 
     public List<RevenueDto> statsRevenueAndMonthOfYear(int year, Integer month) {
         List<Object[]> stats = orderRepository.statsRevenueAndMonthOfYear(year, month);
-        List<RevenueDto> revenues = stats.stream()
-                .map(result -> new RevenueDto(
-                        (Integer) result[0],
-                        (Double) result[1]
-                )).collect(Collectors.toList());
+
+        // map hóa list object
+        Map<Integer, Double> revenueMap = stats.stream()
+                .collect(Collectors.toMap(
+                        result -> (int) result[0],
+                        result -> (Double) result[1]
+                ));
+
+        List<RevenueDto> revenues = IntStream.rangeClosed(1, 12)
+                .mapToObj(mont -> new RevenueDto(
+                        mont,
+                        revenueMap.getOrDefault(mont, 0.0)
+                ))
+                .collect(Collectors.toList());
 
         return revenues;
     }

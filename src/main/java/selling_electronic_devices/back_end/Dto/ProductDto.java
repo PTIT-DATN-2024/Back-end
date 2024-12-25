@@ -1,25 +1,25 @@
 package selling_electronic_devices.back_end.Dto;
 
 import jakarta.persistence.Column;
+import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Entity.Category;
 import selling_electronic_devices.back_end.Entity.ProductDiscount;
 
+import java.util.List;
+
 public class ProductDto {
     private String categoryId;
-    //    private ProductDiscount productDiscount;
     private String name;
     private Long total;
-    //    private Double rate;
-//    private Long numberVote;
     private String description;
     private Double importPrice;
     private Double sellingPrice;
     private String weight;
-//    private String avatar;
-//    private String status;
+    private MultipartFile avatar = null;
+    private MultipartFile avatar1 = null;
+    private MultipartFile avatar2 = null;
 
-
-    public ProductDto(String categoryId, String name, Long total, String description, Double importPrice, Double sellingPrice, String weight) {
+    public ProductDto(String categoryId, String name, Long total, String description, Double importPrice, Double sellingPrice, String weight, MultipartFile avatar, MultipartFile avatar1, MultipartFile avatar2) {
         this.categoryId = categoryId;
         this.name = name;
         this.total = total;
@@ -27,6 +27,9 @@ public class ProductDto {
         this.importPrice = importPrice;
         this.sellingPrice = sellingPrice;
         this.weight = weight;
+        this.avatar = avatar;
+        this.avatar1 = avatar1;
+        this.avatar2 = avatar2;
     }
 
     public String getCategoryId() {
@@ -83,5 +86,29 @@ public class ProductDto {
 
     public void setWeight(String weight) {
         this.weight = weight;
+    }
+
+    public MultipartFile getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(MultipartFile avatar) {
+        this.avatar = avatar;
+    }
+
+    public MultipartFile getAvatar1() {
+        return avatar1;
+    }
+
+    public void setAvatar1(MultipartFile avatar1) {
+        this.avatar1 = avatar1;
+    }
+
+    public MultipartFile getAvatar2() {
+        return avatar2;
+    }
+
+    public void setAvatar2(MultipartFile avatar2) {
+        this.avatar2 = avatar2;
     }
 }

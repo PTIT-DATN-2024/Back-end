@@ -120,11 +120,11 @@ public class AuthController {
         try {
             switch (signupRequest.getRole()) {
                 case "ADMIN" -> {
-                    if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
-                        response.put("EC", 1);
-                        response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                    }
+//                    if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
+//                        response.put("EC", 1);
+//                        response.put("MS", "Email already exists.");
+//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Admin admin = new Admin();
@@ -146,11 +146,11 @@ public class AuthController {
                     response.put("MS", "Signup Successfully.");
                 }
                 case "STAFF" -> {
-                    if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
-                        response.put("EC", 1);
-                        response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                    }
+//                    if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
+//                        response.put("EC", 1);
+//                        response.put("MS", "Email already exists.");
+//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Staff staff = new Staff();
@@ -172,11 +172,11 @@ public class AuthController {
                     response.put("MS", "Signup Successfully.");
                 }
                 case "CUSTOMER" -> {
-                    if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
-                        response.put("EC", 1);
-                        response.put("MS", "Email already exists.");
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                    }
+//                    if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
+//                        response.put("EC", 1);
+//                        response.put("MS", "Email already exists.");
+//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Customer customer = new Customer();
