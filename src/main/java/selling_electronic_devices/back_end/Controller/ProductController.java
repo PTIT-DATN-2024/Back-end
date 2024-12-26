@@ -1,5 +1,7 @@
 package selling_electronic_devices.back_end.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.ReferenceType;
 import org.apache.coyote.Request;
 import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,11 +102,10 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductDetail(@PathVariable String productId) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("EC", 0);
-        response.put("MS", "Get product by ID successfully.");
-        response.put("product", productRepository.findById(productId));
-        return ResponseEntity.ok(response);
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        return optionalProduct
+                .map(product -> ResponseEntity.ok(Map.of("EC", 0, "MS", "Get Product by ID successfully.", "product", product)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found customer.")));
     }
 
 //    @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -138,15 +139,14 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(
             @PathVariable String productId,
             @ModelAttribute ProductDto productDto,
-//            @RequestParam(value = "productImageId") String productImageId,
-//            @RequestParam(value = "productImageId1") String productImageId1,
-//            @RequestParam(value = "productImageId2") String productImageId2,
-            @RequestParam(value = "ids") List<String> ids) {
+            @RequestParam(value = "productImageId") String productImageId,
+            @RequestParam(value = "productImageId1") String productImageId1,
+            @RequestParam(value = "productImageId2") String productImageId2) {
 
-//        ProductDto productDto = new ProductDto(categoryId, name, total, description, importPrice, sellingPrice, weight, avatar, avatar1, avatar2);
-//        List<String> productImageIds = new ArrayList<>(Arrays.asList(productImageId, productImageId1, productImageId2));
-//        List<String> productImageIds = new ArrayList<>(Arrays.asList(ids.get(0), ids.get(1), ids.get(2)));
+        List<String> ids = new ArrayList<>(Arrays.asList(productImageId, productImageId1, productImageId2));
 
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        List<String> listId = objectMapper.readValue(ids, new ReferenceType(List<String>) {});
         List<MultipartFile> avatars = new ArrayList<>();
         Collections.addAll(avatars, productDto.getAvatar(), productDto.getAvatar1(), productDto.getAvatar2());
 

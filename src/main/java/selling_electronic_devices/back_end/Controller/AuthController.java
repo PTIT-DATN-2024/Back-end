@@ -111,20 +111,19 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup(@ModelAttribute SignupRequest signupRequest) {//@RequestParam Map<String, String> request, @RequestPart(value = "avatar") MultipartFile avatar) {
+    @PostMapping(value = "/signup")//, consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // yêu cầu chặt định dạng form-data, vị dụ nếu ko gửi avatar với type = multipart file-> Ném lỗi tham số hoặc unsupported mediaType
+    public ResponseEntity<?> signup(@ModelAttribute SignupRequest signupRequest) { // linh hoạt ánh xạ hơn khi bỏ consumes...mediatype, nhưng ko đảm bảo chuẩn format
 
         Map<String, Object> response = new HashMap<>();
-//        SignupRequest signupRequest = new SignupRequest(request.get("email"), request.get("password"), request.get("address"), request.get("phone"), request.get("role"));
 
         try {
             switch (signupRequest.getRole()) {
                 case "ADMIN" -> {
-//                    if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
-//                        response.put("EC", 1);
-//                        response.put("MS", "Email already exists.");
-//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-//                    }
+                    if (adminRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Admin admin = new Admin();
@@ -146,11 +145,11 @@ public class AuthController {
                     response.put("MS", "Signup Successfully.");
                 }
                 case "STAFF" -> {
-//                    if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
-//                        response.put("EC", 1);
-//                        response.put("MS", "Email already exists.");
-//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-//                    }
+                    if (staffRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Staff staff = new Staff();
@@ -172,11 +171,11 @@ public class AuthController {
                     response.put("MS", "Signup Successfully.");
                 }
                 case "CUSTOMER" -> {
-//                    if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
-//                        response.put("EC", 1);
-//                        response.put("MS", "Email already exists.");
-//                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-//                    }
+                    if (customerRepository.findByEmail(signupRequest.getEmail()) != null) {
+                        response.put("EC", 1);
+                        response.put("MS", "Email already exists.");
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                    }
 
                     // Tạo mới nếu email chưa tồn tại
                     Customer customer = new Customer();
@@ -192,7 +191,11 @@ public class AuthController {
                     customer.setIsDelete("False");
 
                     // Lưu ảnh
-                    customer.setAvatar(saveAvatar(signupRequest.getAvatar(), "CUSTOMER"));
+                    if (signupRequest.getAvatar() != null && !signupRequest.getAvatar().isEmpty()) {
+                        customer.setAvatar(saveAvatar(signupRequest.getAvatar(), "CUSTOMER"));
+                    } else {
+                        customer.setAvatar("");
+                    }
 
                     customerRepository.save(customer);
 
@@ -208,9 +211,14 @@ public class AuthController {
             }
         } catch (DataIntegrityViolationException e) { // với test_database ko có constraint unique trong Postgres => thêm unique=true vào "email" Class Customer
             response.put("EC", 1);
-            response.put("MS", "Email already exists.");
+            response.put("MS", "Data integrity violation.");
 
-            return ResponseEntity.status(400).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            response.put("EC", 2);
+            response.put("MS", "An error occurred during registration, try again later");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
         return ResponseEntity.ok(response);

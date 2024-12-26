@@ -37,6 +37,10 @@ public class ProductService {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            if (productRepository.findByName(productDto.getName())) {
+                return Map.of("EC", 1, "MS", "Name already exists.");
+            }
+            
             Optional<Category> optionalCategory = categoryRepository.findById(productDto.getCategoryId());
             if (optionalCategory.isPresent()) {
                 Product product = new Product();
@@ -83,7 +87,7 @@ public class ProductService {
             }
         } catch (DataIntegrityViolationException e) {
             response.put("EC", 1);
-            response.put("MS", "Product name already exists.");
+            response.put("MS", "Data integrity violation.");
         } catch (IOException e) {
             e.printStackTrace();
             response.put("EC", 2);
