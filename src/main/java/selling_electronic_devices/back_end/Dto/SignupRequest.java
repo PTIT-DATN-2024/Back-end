@@ -13,6 +13,9 @@ public class SignupRequest {
     private String role;
     private MultipartFile avatar = null;
 
+    public SignupRequest() {
+    }
+
     public SignupRequest(String email, String password, String address, String phone, String username, String fullName, String role, MultipartFile avatar) {
         this.email = email;
         this.password = password;

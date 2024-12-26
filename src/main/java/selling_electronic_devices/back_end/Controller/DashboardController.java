@@ -30,7 +30,7 @@ public class DashboardController {
     @Autowired
     private OrderService orderService;
 
-    @PostMapping
+    @GetMapping
     public ResponseEntity<?> getStats(
             @RequestParam(value = "month", required = false) Integer month,
             @RequestParam(value = "year") int year) {
