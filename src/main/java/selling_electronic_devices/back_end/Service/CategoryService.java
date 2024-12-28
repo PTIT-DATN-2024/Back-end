@@ -11,6 +11,7 @@ import selling_electronic_devices.back_end.Repository.CategoryRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -79,6 +80,7 @@ public class CategoryService {
                 Category category = optionalCategory.get();
                 category.setName(name);
                 category.setDescription(description);
+                category.setUpdatedAt(LocalDateTime.now());
 
                 // kiểm tra avatar có thay đổi?
                 if (avatar != null && !avatar.isEmpty()) { // toán tử ngắn mạch '&&' đảm bảo nếu avatar == null -> ko check avatar.isEmpty() <nếu check -> NullPointerException>

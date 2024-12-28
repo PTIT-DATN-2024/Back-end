@@ -137,7 +137,11 @@ public class AuthController {
                     admin.setPhone(signupRequest.getPhone());
                     admin.setIsDelete("False");
 
-                    admin.setAvatar(saveAvatar(signupRequest.getAvatar(), "ADMIN"));
+                    if (signupRequest.getAvatar() != null && !signupRequest.getAvatar().isEmpty()) {
+                        admin.setAvatar(saveAvatar(signupRequest.getAvatar(), "ADMIN"));
+                    } else {
+                        admin.setAvatar("");
+                    }
 
                     adminRepository.save(admin);
 
@@ -163,7 +167,11 @@ public class AuthController {
                     staff.setPhone(signupRequest.getPhone());
                     staff.setIsDelete("False");
 
-                    staff.setAvatar(saveAvatar(signupRequest.getAvatar(), "STAFF"));
+                    if (signupRequest.getAvatar() != null && !signupRequest.getAvatar().isEmpty()) {
+                        staff.setAvatar(saveAvatar(signupRequest.getAvatar(), "STAFF"));
+                    } else {
+                        staff.setAvatar("");
+                    }
 
                     staffRepository.save(staff);
 

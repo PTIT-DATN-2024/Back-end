@@ -101,8 +101,8 @@ public class CartController {
                     cartDetail.setCart(cartRepository.findByCustomer(customer)); // chỉ thay đổi thuộc tính, ko thay đổi tham chiếu
                 });
 
-                //cartDetail.setCartDetailId(UUID.randomUUID().toString());
-                cartDetail.setCartDetailId("cartDetail007");
+                cartDetail.setCartDetailId(UUID.randomUUID().toString());
+//                cartDetail.setCartDetailId("cartDetail007");
                 cartDetail.setProduct(addProductToCart.getProduct());
                 cartDetail.setQuantity(addProductToCart.getQuantity());
                 cartDetail.setTotalPrice(addProductToCart.getTotalPrice());

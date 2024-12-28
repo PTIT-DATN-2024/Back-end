@@ -15,6 +15,9 @@ public class ProductDiscount {
     @Column(name = "product_discount_id")
     private String productDiscountId;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "discount_amount", columnDefinition = "NUMERIC(10, 2)")
     private Double discountAmount;
 
@@ -26,6 +29,16 @@ public class ProductDiscount {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public ProductDiscount() { // hibernate càn constructor rỗng để tọa object (instance ProductDiscount) rỗng trước khi gán đối giá trị từ csdl cho nó
+    }
+
+    public ProductDiscount(String productDiscountId, String name, Double discountAmount, LocalDateTime expiredDate) {
+        this.productDiscountId = productDiscountId;
+        this.name = name;
+        this.discountAmount = discountAmount;
+        this.expiredDate = expiredDate;
+    }
 
     public String getProductDiscountId() {
         return productDiscountId;
@@ -45,6 +58,14 @@ public class ProductDiscount {
 
     public LocalDateTime getExpiredDate() {
         return expiredDate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setExpiredDate(LocalDateTime expiredDate) {

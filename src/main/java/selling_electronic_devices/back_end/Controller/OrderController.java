@@ -77,9 +77,6 @@ public class OrderController {
         try {
             // Tạo đơn hàng mới
             Order order = orderService.createOrder(orderDto);
-
-            System.out.println("quantity after update:" + productRepository.findById("prod007").get().getTotal());
-
 //            // Tạo tham số VNPay
 //            String vnpCommand = "pay";
 //            String orderId = order.getOrderId();
@@ -171,7 +168,7 @@ public class OrderController {
                     continue;
                 } catch (Exception exception) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(Map.of("EC", 1, "MS", "Error creating payment URL", "error", exception.getMessage()));
+                            .body(Map.of("EC", 1, "MS", "Retry fail to create payment URL", "error", exception.getMessage()));
                 }
             }
             return ResponseEntity.status(HttpStatus.CONFLICT)
