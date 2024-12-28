@@ -13,6 +13,7 @@ import selling_electronic_devices.back_end.Repository.StaffRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public class CustomerService {
                     customer.setPhone(updateDto.getPhone());
                     customer.setUsername(updateDto.getUsername());
                     customer.setFullName(updateDto.getFullName());
-//                    customer.setRole(customerDto.getRole());
+                    customer.setUpdatedAt(LocalDateTime.now());
 
                     MultipartFile avatar = updateDto.getAvatar();
                     if (avatar != null && !avatar.isEmpty()) { // avatar = null -> keep old avatar
@@ -77,7 +78,7 @@ public class CustomerService {
                     staff.setPhone(updateDto.getPhone());
                     staff.setUsername(updateDto.getUsername());
                     staff.setFullName(updateDto.getFullName());
-//                    staff.setRole(customerDto.getRole());
+                    staff.setUpdatedAt(LocalDateTime.now());
 
                     MultipartFile avatar = updateDto.getAvatar();
                     if (avatar != null && !avatar.isEmpty()) { // avatar = null -> keep old avatar
