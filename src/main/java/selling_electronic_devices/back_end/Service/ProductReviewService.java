@@ -15,6 +15,7 @@ import selling_electronic_devices.back_end.Repository.CustomerRepository;
 import selling_electronic_devices.back_end.Repository.ProductRepository;
 import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -112,22 +113,6 @@ public class ProductReviewService {
         Optional<ProductReview> optionalProductReview = productReviewRepository.findById(productReviewId);
         if (optionalProductReview.isPresent()) {
             ProductReview productReview = optionalProductReview.get();
-//            Optional<Customer> optionalCustomer = customerRepository.findById(productReviewDto.getCustomerId());
-//            Optional<Product> optionalProduct = productRepository.findById(productReviewDto.getProductId());
-//            optionalCustomer.ifPresentOrElse(
-//                    productReview::setCustomer,
-//                    () -> {
-//                        throw new IllegalArgumentException("Not found customer with ID: " + productReviewDto.getCustomerId());
-//                    }
-//            );
-//            optionalProduct.ifPresentOrElse(
-//                    productReview::setProduct,
-//                    () -> {
-//                        throw new IllegalArgumentException("Not found product ID: " + productReviewDto.getProductId());
-//                    }
-//            );
-//            productReview.setCustomer(optionalCustomer.orElseGet(() -> null));
-//            productReview.setProduct(optionalProduct.orElseGet(() -> null));
 
             // update lại rate cho product
             Optional<Product> optionalProduct = productRepository.findById(productReview.getProduct().getProductId());
@@ -147,6 +132,7 @@ public class ProductReviewService {
             );
             productReview.setComment(productReviewDto.getComment());
             productReview.setRating(productReviewDto.getRating());
+            productReview.setUpdatedAt(LocalDateTime.now());
 
             productReviewRepository.save(productReview);
             return true;

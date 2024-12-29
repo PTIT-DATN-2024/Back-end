@@ -73,6 +73,24 @@ public class Product {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public Product() {
+    }
+
+    public Product(String productId, Category category, ProductDiscount productDiscount, String name, Long total, Long numberVote, String description, Double importPrice, Double sellingPrice, String status, String weight, String presentImage, String isDelete) {
+        this.productId = productId;
+        this.category = category;
+        this.productDiscount = productDiscount;
+        this.name = name;
+        this.total = total;
+        this.numberVote = numberVote;
+        this.description = description;
+        this.importPrice = importPrice;
+        this.sellingPrice = sellingPrice;
+        this.status = status;
+        this.weight = weight;
+        this.presentImage = presentImage;
+        this.isDelete = isDelete;
+    }
 
     public String getProductId() {
         return productId;
