@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cart_details")
+@Table(
+        name = "cart_details",
+        indexes = @Index(name = "idx_cart_product_id", columnList = "cart_id, product_id") // composite index: tối ưu việc tìm kiếm cartDetail (wherer product_id = ? && cart_id = ??) dựa vào cart_id + product_id, sẽ dùng index scan thay vì seq scan (quét toàn bảng).
+)
 public class CartDetail {
 
     @Id
