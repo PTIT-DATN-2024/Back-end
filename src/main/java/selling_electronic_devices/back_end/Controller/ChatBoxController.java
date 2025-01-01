@@ -177,7 +177,9 @@ public class ChatBoxController {
         return optionalIceBox
                 .map(
                         iceBox -> {
-                            iceBox.setUpdatedAt(LocalDateTime.now().plusHours(1));
+                            iceBox.setUpdatedAt(LocalDateTime.now().minusMinutes(30));// now() - begin ~ 1h -> update begin = now - 30' ==> now() - begin = 30' < 1h
+                            iceBoxRepository.save(iceBox);
+
                             return ResponseEntity.ok(Map.of("EC", 0, "MS", "Extended expired time."));
                         }
                 )
