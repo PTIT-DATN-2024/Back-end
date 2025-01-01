@@ -134,7 +134,7 @@
 //        //api add
 //        mockMvc.perform(put("/cart")
 //                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(addProductToCart)))// convert object -> strin
+//                        .content(objectMapper.writeValueAsString(addProductToCart)))// convert object -> string
 //                .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.EC").value(0))
 //                .andExpect(jsonPath("$.MS").value("Update cart successfully."));
@@ -155,7 +155,7 @@
 //                .andExpect(jsonPath("$.MS").value("Updated quantity successfully."));
 //
 //        long quantityAfterChange = cartDetailRepository.findByProduct(product)
-//                .map(cartDetail -> cartDetail.getQuantity())
+//                .map(CartDetail::getQuantity)
 //                .orElse(0L);
 //
 //        System.out.println("===> Quantity after change: " + quantityAfterChange);

@@ -5,29 +5,28 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_messages")
+@Table(
+        name = "chat_messages",
+        indexes = @Index(name = "idx_chat_message_cbi", columnList = "chat_box_id") // đánh index để tăng hiệu xuất get all message theo chat_box_id.
+)
 public class ChatMessage {
 
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_message_id")
     private String chatMessageId;
 
-    // ref customer
+    // ref ice_box
     @Column(name = "chat_box_id", nullable = false)
     private String chatBoxId;
 
     @Column(name = "message", nullable = false)
     private String message;
 
-//    @Column(name = "status")
-//    private String status;
-
     @Column(name = "by", nullable = false)
     private String by; //CUSTOMER or STAFF
 
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;// = LocalDateTime.now();
+    private LocalDateTime timestamp;
 
     public String getChatMessageId() {
         return chatMessageId;
@@ -52,14 +51,6 @@ public class ChatMessage {
     public void setMessage(String message) {
         this.message = message;
     }
-
-//    public String getStatus() {
-//        return status;
-//    }
-//
-//    public void setStatus(String status) {
-//        this.status = status;
-//    }
 
     public String getBy() {
         return by;
