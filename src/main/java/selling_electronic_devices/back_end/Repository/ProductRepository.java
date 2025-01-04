@@ -29,7 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             "AND (:month IS NULL OR EXTRACT(MONTH FROM p.createdAt) = :month) ")
     Long countTotalProducts(@Param("year") int year, @Param("month") Integer month);
 
-    boolean findByName(String name);
+    boolean existsByName(String name);
 
 //    @Query("SELECT p FROM Product ORDER BY numberVote DESC")
 //    List<Product> listBestSellers(int yearStats);

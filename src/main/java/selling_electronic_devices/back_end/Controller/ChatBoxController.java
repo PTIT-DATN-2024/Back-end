@@ -3,6 +3,7 @@ package selling_electronic_devices.back_end.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -17,9 +18,7 @@ import selling_electronic_devices.back_end.Repository.IceBoxRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @RestController
@@ -34,6 +33,11 @@ public class ChatBoxController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private static final String REDIS_CHAT_KEY_PREFIX = "chatbox:";
 
     @MessageMapping("/{to}/{chatBoxId}") //bỏ "/publish" vì Spring tự động thêm prefix "/publish" đã cáu hình vào các destination từ client.
     // {to} để biết SendTo đến ai customer || staff, tránh nhận lại mess của chính mình
@@ -51,6 +55,7 @@ public class ChatBoxController {
             if (optionalIceBox.isPresent()) {
                 IceBox iceBox = optionalIceBox.get();
 
+                // 1. Update status và thông báo khi: customer gửi tin nhắn (chưa được nhận xử lý) HOẶC Staff click chọn task từ Ice Box
                 if (to.equals("staff") && iceBox.getStatus().equals("PROCESSED")) { //(customer gửi tin nhắn đầu): nếu chỉ 2 status PROCESSED || PENDING (hoặc xóa || ko xóa) ===> khi staff click cập nhật status "PROCESSED" -> dẫn đến vi trùng điều kiện customer "PROCESSED" và nó lại set lại "PENDING" dù đang xử lý. TH xóa || ko xóa tương tự ---> status 3th = "IN PROGRESS" thỏa mãn: staff update status mà ko trùng status customer
                     iceBox.setStatus("PENDING"); // -> thêm vào "Ice-Box"
                     iceBox.setUpdatedAt(LocalDateTime.now());
@@ -63,31 +68,55 @@ public class ChatBoxController {
                     iceBox.setUpdatedAt(LocalDateTime.now());
                     iceBoxRepository.save(iceBox);
 
-                    // Có thể delete all chat_messages sau khi staff fetch (save on local: cookie, session, ...), staff -customer lúc này nhận tin và save trên FE, set TTL = 1h, KHI HẾT 1H ===> Call api update status IceBox = "PROCESSED" để phục vụ cho lần yêu cầu tư ván sau của Cust
-                    //chatMessageRepository.deleteAllByChatBoxId(chatBoxId);
-
-                    // Thông bao vừa remove (do 1 staff chọn xử lý) để tất cả staff update "Ice-Box"
+                    // Thông báo (vừa remove: PENDING -> IN PROGRESS) để update "Ice-Box"
                     messagingTemplate.convertAndSend("/notification/update-ice-box", "UPDATE");
                 }
+
+                // 2. Lưu tin nhắn
+                if (iceBox.getStatus().equals("PENDING")) {
+                    // 2.1. Lưu tin nhắn vào Postgres
+                    chatMessageRepository.save(getChatMessage(chatBoxId, to, message));
+                }else if (iceBox.getStatus().equals("IN PROGRESS")) {
+                    // 2.2. Lưu vào Redis
+                    redisTemplate.opsForList().rightPush(REDIS_CHAT_KEY_PREFIX + chatBoxId, getChatMessage(chatBoxId, to, message));
+                }
+
+                // 3. Kiểm tra thời hạn cuộc trò chuyện
+                LocalDateTime latestUpdate = iceBox.getUpdatedAt();
+                System.out.println("TIME between: " + Duration.between(latestUpdate, LocalDateTime.now()).toHours());
+                if (Duration.between(latestUpdate, LocalDateTime.now()).toHours() >= 1) { //ChronoUnit.HOURS.between(beginUpdate, LocalDateTime.now()) - 1;
+                    iceBox.setStatus("PROCESSED");
+                    iceBox.setUpdatedAt(LocalDateTime.now());
+                    iceBoxRepository.save(iceBox);
+
+                    // Gửi thông báo tới staff để unsubscribe "/notification/staff/{chatBoxId}"
+                    messagingTemplate.convertAndSend("/notification/kill-task/" + chatBoxId, "KILL-TASK");
+                }
+
             } else {
                 throw new IllegalArgumentException("Not found IceBox with ID.");
             }
 
+            // 2.1 Lưu tin nhắn vào Postgres
+            //chatMessageRepository.save(getChatMessage(chatBoxId, to, message));
 
-            chatMessageRepository.save(getChatMessage(chatBoxId, to, message));
-
-            // Nếu thời gian vượt quá 1 giờ, cập nhật trạng thái và thông báo ngắt kết nối
-            IceBox iceBox = optionalIceBox.get();
-            LocalDateTime beginUpdate = iceBox.getUpdatedAt();
-            System.out.println("TIME between: " + Duration.between(beginUpdate, LocalDateTime.now()).toHours());
-            if (Duration.between(beginUpdate, LocalDateTime.now()).toHours() >= 1) { //ChronoUnit.HOURS.between(beginUpdate, LocalDateTime.now()) - 1;
-                iceBox.setStatus("PROCESSED");
-                iceBox.setUpdatedAt(LocalDateTime.now());
-                iceBoxRepository.save(iceBox);
-
-                // Gửi thông báo tới staff về việc kết thúc phiên trò chuyện
-                messagingTemplate.convertAndSend("/notification/kill-task/" + chatBoxId, "KILL-TASK");
-            }
+            // 2.2. Lưu vào trong Redis
+//            if (optionalIceBox.get().getStatus().equals("IN PROGRESS")) {
+//                redisTemplate.opsForList().rightPush(REDIS_CHAT_KEY_PREFIX + chatBoxId, getChatMessage(chatBoxId, to, message));
+//            }
+//
+//            // 3. Kiểm tra thời hạn của cuộc trò chuyện. Nếu thời gian vượt quá 1 giờ, cập nhật trạng thái và thông báo ngắt kết nối
+//            IceBox iceBox = optionalIceBox.get();
+//            LocalDateTime beginUpdate = iceBox.getUpdatedAt();
+//            System.out.println("TIME between: " + Duration.between(beginUpdate, LocalDateTime.now()).toHours());
+//            if (Duration.between(beginUpdate, LocalDateTime.now()).toHours() >= 1) { //ChronoUnit.HOURS.between(beginUpdate, LocalDateTime.now()) - 1;
+//                iceBox.setStatus("PROCESSED");
+//                iceBox.setUpdatedAt(LocalDateTime.now());
+//                iceBoxRepository.save(iceBox);
+//
+//                // Gửi thông báo tới staff về việc kết thúc phiên trò chuyện
+//                messagingTemplate.convertAndSend("/notification/kill-task/" + chatBoxId, "KILL-TASK");
+//            }
 
             return message;
         } catch (Exception e) {

@@ -38,7 +38,7 @@ public class ProductService {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            if (productRepository.findByName(productDto.getName())) {
+            if (productRepository.existsByName(productDto.getName())) {
                 return Map.of("EC", 1, "MS", "Name already exists.");
             }
             

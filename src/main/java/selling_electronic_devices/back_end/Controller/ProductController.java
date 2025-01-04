@@ -60,7 +60,7 @@ public class ProductController {
 //        return ResponseEntity.ok(productService.createProduct(productDto, avatars));
 //    }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping//(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProduct(@ModelAttribute ProductDto productDto) {
 
         List<MultipartFile> avatars = new ArrayList<>(Arrays.asList(productDto.getAvatar(), productDto.getAvatar1(), productDto.getAvatar2()));
