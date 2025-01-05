@@ -193,7 +193,7 @@ public class ProductService {
             }
         } catch (DataIntegrityViolationException e) {
             response.put("EC", 1);
-            response.put("MS", "Product name already exist.");
+            response.put("MS", "Data integrity violation.");
         } catch (IOException e) {
             e.printStackTrace();
             response.put("EC", 2);

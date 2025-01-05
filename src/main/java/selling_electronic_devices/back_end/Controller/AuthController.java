@@ -17,15 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.AuthenticationRequest;
 import selling_electronic_devices.back_end.Dto.LoginResponse;
 import selling_electronic_devices.back_end.Dto.SignupRequest;
-import selling_electronic_devices.back_end.Entity.Admin;
-import selling_electronic_devices.back_end.Entity.Cart;
-import selling_electronic_devices.back_end.Entity.Customer;
-import selling_electronic_devices.back_end.Entity.Staff;
+import selling_electronic_devices.back_end.Entity.*;
 import selling_electronic_devices.back_end.Jwt.JwtUtil;
-import selling_electronic_devices.back_end.Repository.AdminRepository;
-import selling_electronic_devices.back_end.Repository.CartRepository;
-import selling_electronic_devices.back_end.Repository.CustomerRepository;
-import selling_electronic_devices.back_end.Repository.StaffRepository;
+import selling_electronic_devices.back_end.Repository.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +46,9 @@ public class AuthController {
 
     @Autowired
     private CartRepository cartRepository;
+
+    @Autowired
+    private IceBoxRepository iceBoxRepository;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -81,7 +78,7 @@ public class AuthController {
         Admin admin = adminRepository.findByEmail(authenticationRequest.getEmail());
         Staff staff = staffRepository.findByEmail(authenticationRequest.getEmail());
         Object user = null;
-        String id = "", role = "", avatar= "";
+        String id = "", role = "", avatar = "", chatBoxId = "";
         if (admin != null) {
             id = admin.getAdminId();
             role = admin.getRole();
@@ -97,13 +94,15 @@ public class AuthController {
             role = customer.getRole();
             avatar = customer.getAvatar();
             user = customer;
+
+            chatBoxId = iceBoxRepository.findByCustomer(customer).map(IceBox::getChatBoxId).orElseGet(() -> "");
         }
 
         // Tạo jwt
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        LoginResponse loginResponse = new LoginResponse(jwt, id, authenticationRequest.getEmail(), role, avatar, user);
+        LoginResponse loginResponse = new LoginResponse(jwt, id, authenticationRequest.getEmail(), role, avatar, user, chatBoxId);
         Map<String, Object> response = new HashMap<>();
         response.put("EC", 0);
         response.put("MS", "Login Successfully.");
