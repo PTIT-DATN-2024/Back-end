@@ -7,14 +7,16 @@ public class LoginResponse {
     private String role;
     private String avatar;
     private Object user;
+    private String chatBoxId;
 
-    public LoginResponse(String token, String id, String email, String role, String avatar, Object user) {
+    public LoginResponse(String token, String id, String email, String role, String avatar, Object user, String chatBoxId) {
         this.token = token;
         this.id = id;
         this.email = email;
         this.role = role;
         this.avatar = avatar;
         this.user = user;
+        this.chatBoxId = chatBoxId;
     }
 
     public String getToken() {
@@ -63,5 +65,13 @@ public class LoginResponse {
 
     public void setUser(Object user) {
         this.user = user;
+    }
+
+    public String getChatBoxId() {
+        return chatBoxId;
+    }
+
+    public void setChatBoxId(String chatBoxId) {
+        this.chatBoxId = chatBoxId;
     }
 }

@@ -19,7 +19,6 @@ public class ProductDiscountService {
     private ProductDiscountRepository productDiscountRepository;
 
     public void createProductDiscount(ProductDiscountDto productDiscountDto) {
-
         ProductDiscount productDiscount = new ProductDiscount(UUID.randomUUID().toString(), productDiscountDto.getName(), productDiscountDto.getDiscountAmount(), productDiscountDto.getExpiredDate());
         productDiscountRepository.save(productDiscount);
     }

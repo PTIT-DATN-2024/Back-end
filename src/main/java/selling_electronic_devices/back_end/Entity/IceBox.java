@@ -1,5 +1,6 @@
 package selling_electronic_devices.back_end.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,11 @@ public class IceBox {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "staff_id", referencedColumnName = "staff_id")
+    @JsonIgnoreProperties("iceBoxes")
+    private Staff staff;
 
     @Column(name = "status")
     private String status;
@@ -51,6 +57,14 @@ public class IceBox {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public Staff getStaff() {
+        return staff;
+    }
+
+    public void setStaff(Staff staff) {
+        this.staff = staff;
     }
 
     public String getStatus() {

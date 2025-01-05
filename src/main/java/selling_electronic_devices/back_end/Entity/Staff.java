@@ -1,9 +1,11 @@
 package selling_electronic_devices.back_end.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "staffs")
@@ -22,6 +24,10 @@ public class Staff {
 
     @Column(name = "email")
     private String email;
+
+    @OneToMany(mappedBy = "staff")
+    @JsonIgnoreProperties("staff")
+    private List<IceBox> iceBoxes;
 
     @Column(name = "password", nullable = false)
     private String password;
@@ -80,6 +86,14 @@ public class Staff {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<IceBox> getIceBoxes() {
+        return iceBoxes;
+    }
+
+    public void setIceBoxes(List<IceBox> iceBoxes) {
+        this.iceBoxes = iceBoxes;
     }
 
     public String getPassword() {

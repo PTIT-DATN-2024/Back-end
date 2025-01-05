@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.HtmlUtils;
 import selling_electronic_devices.back_end.Entity.ChatMessage;
 import selling_electronic_devices.back_end.Entity.IceBox;
+import selling_electronic_devices.back_end.Entity.Staff;
 import selling_electronic_devices.back_end.Repository.ChatMessageRepository;
 import selling_electronic_devices.back_end.Repository.IceBoxRepository;
+import selling_electronic_devices.back_end.Repository.StaffRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -24,6 +26,9 @@ import java.util.*;
 @RestController
 @RequestMapping("/chat")
 public class ChatBoxController {
+
+    @Autowired
+    private StaffRepository staffRepository;
 
     @Autowired
     private ChatMessageRepository chatMessageRepository;
@@ -64,8 +69,12 @@ public class ChatBoxController {
                     // Thông báo cho all staff update "Ice-Box"
                     messagingTemplate.convertAndSend("/notification/update-ice-box", "UPDATE");
                 } else if (to.equals("customer") && iceBox.getStatus().equals("PENDING")) { // staff click chọn task từ Ice Box
+                    Staff staff = staffRepository.findById(message.getMessage()).orElse(null);
+                    message.setMessage("How can i help you?");
+
                     iceBox.setStatus("IN PROGRESS");
                     iceBox.setUpdatedAt(LocalDateTime.now());
+                    iceBox.setStaff(staff);
                     iceBoxRepository.save(iceBox);
 
                     // Thông báo (vừa remove: PENDING -> IN PROGRESS) để update "Ice-Box"
@@ -86,6 +95,7 @@ public class ChatBoxController {
                 System.out.println("TIME between: " + Duration.between(latestUpdate, LocalDateTime.now()).toHours());
                 if (Duration.between(latestUpdate, LocalDateTime.now()).toHours() >= 1) { //ChronoUnit.HOURS.between(beginUpdate, LocalDateTime.now()) - 1;
                     iceBox.setStatus("PROCESSED");
+                    iceBox.setStaff(null);
                     iceBox.setUpdatedAt(LocalDateTime.now());
                     iceBoxRepository.save(iceBox);
 
@@ -213,6 +223,19 @@ public class ChatBoxController {
                         }
                 )
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Extend expired time failed.")));
+    }
+
+    @GetMapping("/task/in-progress/{staffId}")
+    public ResponseEntity<?> getTasksInProgress(@PathVariable String staffId) {
+        Staff staff = staffRepository.findById(staffId).orElse(null);
+
+        if (staff != null) {
+            return ResponseEntity.ok(Map.of("EC", 0, "MS", "Get all tasks in-progress successfully.", "tasks", staff.getIceBoxes()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found tasks with ID."));
+        }
+
+
     }
 
 
