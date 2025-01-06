@@ -3,7 +3,11 @@ package selling_electronic_devices.back_end.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.SignupRequest;
 import selling_electronic_devices.back_end.Entity.Customer;
@@ -13,6 +17,7 @@ import selling_electronic_devices.back_end.Repository.StaffRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +31,12 @@ public class CustomerService {
 
     @Autowired
     private StaffRepository staffRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     public List<?> getAllUsers(int offset, int limit) {
         PageRequest pageRequest = PageRequest.of(offset, limit, Sort.by(Sort.Order.desc("isDelete")));
@@ -42,12 +53,14 @@ public class CustomerService {
 
     public boolean updateInfoUser(String id, SignupRequest updateDto) {
         try {
-            if (updateDto.getRole().equals("CUSTOMER")) {
+            if ("CUSTOMER".equals(updateDto.getRole())) {
                 Optional<Customer> optionalCustomer = customerRepository.findById(id);
                 if (optionalCustomer.isPresent()) {
                     Customer customer = optionalCustomer.get();
                     customer.setEmail(updateDto.getEmail());
-                    customer.setPassword(updateDto.getPassword());
+                    if (!updateDto.getPassword().isEmpty()) {
+                        customer.setPassword(passwordEncoder.encode(updateDto.getPassword()));
+                    }
                     customer.setAddress(updateDto.getAddress());
                     customer.setPhone(updateDto.getPhone());
                     customer.setUsername(updateDto.getUsername());
@@ -119,4 +132,71 @@ public class CustomerService {
             return true;
         }).orElseGet(() -> false);
     }
+
+    public boolean changePassword(String id, String password) {
+        Customer customer = customerRepository.findById(id).orElse(null);
+        Staff staff = staffRepository.findById(id).orElse(null);
+        if (customer != null) {
+            customer.setPassword(passwordEncoder.encode(password));
+            customerRepository.save(customer);
+
+            return true;
+        } else if (staff != null) {
+            staff.setPassword(passwordEncoder.encode(password));
+            staffRepository.save(staff);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Transactional
+    public boolean getNewPassword(String id) {
+        Customer customer = customerRepository.findById(id).orElse(null);
+        Staff staff = staffRepository.findById(id).orElse(null);
+
+        if (customer != null) {
+            String randomPassword = generateRandomPassword(6);
+            customer.setPassword(passwordEncoder.encode(randomPassword));
+            customerRepository.save(customer);
+
+            // sent to user email
+            sendEmail(customer.getEmail(), "Password reset", "Your new password is: " + randomPassword);
+
+            return true;
+        } else if (staff != null) {
+            String randomPassword = generateRandomPassword(6);
+            staff.setPassword(passwordEncoder.encode(randomPassword));
+            staffRepository.save(staff);
+
+            // sent to user email
+            sendEmail(staff.getEmail(), "Password reset", "Your new password is " + randomPassword);
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void sendEmail(String to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+
+        mailSender.send(message);
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return password.toString();
+   }
 }
