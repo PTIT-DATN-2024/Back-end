@@ -23,6 +23,7 @@ import selling_electronic_devices.back_end.Repository.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -214,6 +215,15 @@ public class AuthController {
 
                     response.put("EC", 0);
                     response.put("MS", "Signup Successfully.");
+
+                    // tạo chat box
+                    IceBox iceBox = new IceBox();
+                    iceBox.setChatBoxId(UUID.randomUUID().toString());
+                    iceBox.setCustomer(customer);
+                    iceBox.setStatus("PROCESSED");
+                    iceBox.setUpdatedAt(LocalDateTime.now());
+
+                    iceBoxRepository.save(iceBox);
                 }
             }
         } catch (DataIntegrityViolationException e) { // với test_database ko có constraint unique trong Postgres => thêm unique=true vào "email" Class Customer

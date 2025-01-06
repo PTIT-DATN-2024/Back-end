@@ -28,9 +28,9 @@ public class ChatMessageBatchService {
     private static final String REDIS_CHAT_KEY_PREFIX = "chatbox:";
     private static final Long REDIS_BATCH_SIZE = 500L; // ngưỡng lưu batch
 
-    @Scheduled(fixedRate = 60000) // lịch chạy mỗi 30s
+//    @Scheduled(fixedRate = 60000) // lịch chạy mỗi 30s
     public void batchSaveMessage() {
-        // lấy all keys trong Redis có prefix = "chat_box"
+        // lấy all keys (chatBox) trong Redis có prefix = "chat_box"
         Set<String> keys = redisTemplate.keys(REDIS_CHAT_KEY_PREFIX + "*");
 
         // lưu toàn bộ nội dung (message) trong mỗi key (chatBox) vào database
