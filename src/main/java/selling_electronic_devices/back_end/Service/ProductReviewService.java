@@ -39,27 +39,29 @@ public class ProductReviewService {
         productReview.setProductReviewId(UUID.randomUUID().toString());
         Optional<Customer> optionalCustomer = customerRepository.findById(productReviewDto.getCustomerId());
         Optional<Product> optionalProduct = productRepository.findById(productReviewDto.getProductId());
+
         optionalCustomer.ifPresentOrElse(
                 productReview::setCustomer,
                 () -> {
                     throw new IllegalArgumentException("Not found customer with ID: " + productReviewDto.getCustomerId());
                 });
+
         optionalProduct.ifPresentOrElse( // update numberVote, rate
                 product -> {
                     productReview.setProduct(product);
 
                     // update numberVote, rate
                     long numberVoteOld = product.getNumberVote();
-                    if (numberVoteOld == 0) {
-                        product.setRate(Double.parseDouble(productReviewDto.getRating()));
-                        product.setNumberVote(1L);
-                    } else {
-                        double rateOld = product.getRate();
-                        double rateNew = ( rateOld * numberVoteOld + Integer.parseInt(productReviewDto.getRating()) ) / (numberVoteOld + 1);
+//                    if (numberVoteOld == 0) {
+//                        product.setRate(Double.parseDouble(productReviewDto.getRating()));
+//                        product.setNumberVote(1L);
+//                    } else {
+                    double rateOld = product.getRate();
+                    double rateNew = (rateOld * numberVoteOld + Integer.parseInt(productReviewDto.getRating())) / (numberVoteOld + 1);
 
-                        product.setRate(rateNew);
-                        product.setNumberVote(numberVoteOld + 1);
-                    }
+                    product.setRate(rateNew);
+                    product.setNumberVote(numberVoteOld + 1);
+//                    }
 
                     productRepository.save(product);
                 }

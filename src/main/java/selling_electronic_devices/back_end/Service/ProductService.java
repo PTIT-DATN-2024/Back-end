@@ -9,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import selling_electronic_devices.back_end.Dto.ProductDto;
 import selling_electronic_devices.back_end.Entity.*;
-import selling_electronic_devices.back_end.Repository.CategoryRepository;
-import selling_electronic_devices.back_end.Repository.ProductImageRepository;
-import selling_electronic_devices.back_end.Repository.ProductRepository;
-import selling_electronic_devices.back_end.Repository.ProductReviewRepository;
+import selling_electronic_devices.back_end.Repository.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +26,8 @@ public class ProductService {
     private CategoryRepository categoryRepository;
     @Autowired
     private ProductImageRepository productImageRepository;
+    @Autowired
+    private ProductDiscountRepository productDiscountRepository;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -52,11 +51,11 @@ public class ProductService {
                 product.setProductId(UUID.randomUUID().toString());
                 //product.setProductId("prod007");
                 product.setCategory(optionalCategory.get());
-                product.setProductDiscount(productDto.getProductDiscount());
+                product.setProductDiscount(null);
                 product.setName(productDto.getName());
                 product.setTotal(productDto.getTotal());
-                product.setRate(5.0);
-                product.setNumberVote(19L);
+                product.setRate(0D);
+                product.setNumberVote(0L);
                 product.setDescription(productDto.getDescription());
                 product.setImportPrice(productDto.getImportPrice());
                 product.setSellingPrice(productDto.getSellingPrice());
@@ -141,12 +140,13 @@ public class ProductService {
                 Product product = productOp.get();
                 product.setCategory(optionalCategory.get());
 
-                if (productDto.getProductDiscount() != null) { // thay đổi gia nếu thêm discount
-                    Double oldPrice = product.getSellingPrice();
-                    Double newPrice = oldPrice * (1 - productDto.getProductDiscount().getDiscountAmount());
-                    product.setSellingPrice(newPrice);
-                }
-                product.setProductDiscount(product.getProductDiscount());
+                ProductDiscount productDiscount = productDiscountRepository.findById(productDto.getProductDiscountId()).orElse(null);
+//                if (productDto.getProductDiscount() != null) { // thay đổi gia nếu thêm discount
+//                    Double oldPrice = product.getSellingPrice();
+//                    Double newPrice = oldPrice * (1 - productDto.getProductDiscount().getDiscountAmount());
+//                    product.setSellingPrice(newPrice);
+//                }
+                product.setProductDiscount(productDiscount);
                 product.setName(productDto.getName());
                 product.setTotal(productDto.getTotal());
                 product.setDescription(productDto.getDescription());

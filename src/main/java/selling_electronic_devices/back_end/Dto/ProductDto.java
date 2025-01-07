@@ -15,12 +15,12 @@ public class ProductDto {
     private Double importPrice;
     private Double sellingPrice;
     private String weight;
-    private ProductDiscount productDiscount = null;
     private MultipartFile avatar = null;
+    private String productDiscountId = "";
     private MultipartFile avatar1 = null;
     private MultipartFile avatar2 = null;
 
-    public ProductDto(String categoryId, String name, Long total, String description, Double importPrice, Double sellingPrice, String weight, ProductDiscount productDiscount, MultipartFile avatar, MultipartFile avatar1, MultipartFile avatar2) {
+    public ProductDto(String categoryId, String name, Long total, String description, Double importPrice, Double sellingPrice, String weight, MultipartFile avatar, String productDiscountId, MultipartFile avatar1, MultipartFile avatar2) {
         this.categoryId = categoryId;
         this.name = name;
         this.total = total;
@@ -28,8 +28,8 @@ public class ProductDto {
         this.importPrice = importPrice;
         this.sellingPrice = sellingPrice;
         this.weight = weight;
-        this.productDiscount = productDiscount;
         this.avatar = avatar;
+        this.productDiscountId = productDiscountId;
         this.avatar1 = avatar1;
         this.avatar2 = avatar2;
     }
@@ -90,12 +90,12 @@ public class ProductDto {
         this.weight = weight;
     }
 
-    public ProductDiscount getProductDiscount() {
-        return productDiscount;
+    public String getProductDiscountId() {
+        return productDiscountId;
     }
 
-    public void setProductDiscount(ProductDiscount productDiscount) {
-        this.productDiscount = productDiscount;
+    public void setProductDiscountId(String productDiscountId) {
+        this.productDiscountId = productDiscountId;
     }
 
     public MultipartFile getAvatar() {
