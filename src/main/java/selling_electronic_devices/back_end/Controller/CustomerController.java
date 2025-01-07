@@ -54,11 +54,11 @@ public class CustomerController {
         });
     }
 
-    @PutMapping("/{customerId}")
-    public ResponseEntity<?> updateUser(@PathVariable String customerId, @ModelAttribute SignupRequest updateDto) {
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable String id, @ModelAttribute SignupRequest updateDto) {
         Map<String, Object> response = new HashMap<>();
         try {
-            boolean isUpdated = customerService.updateInfoUser(customerId, updateDto);
+            boolean isUpdated = customerService.updateInfoUser(id, updateDto);
             if (isUpdated) {
                 response.put("EC", 0);
                 response.put("MS", "Update user success!");
@@ -73,6 +73,49 @@ public class CustomerController {
             response.put("EC", 2);
             response.put("MS", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PutMapping("/change-password/{id}")
+    public ResponseEntity<?> changePassword(@PathVariable String id, @RequestParam(value = "password") String password) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (customerService.changePassword(id, password)) {
+                response.put("EC", 0);
+                response.put("MS", "Changed password successfully.");
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Not found user.");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("EC", 2);
+            response.put("MS", "An error occurred: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam(value = "email") String email) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (customerService.getNewPassword(email)) {
+                response.put("EC", 0);
+                response.put("MS", "Password has been reset and sent to your email, check it to log in.");
+
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("EC", 1);
+                response.put("MS", "Not found user with ID.");
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            response.put("EC", 2);
+            response.put("MS", "An error occurred: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
