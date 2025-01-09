@@ -2,6 +2,7 @@ package selling_electronic_devices.back_end.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -43,7 +44,9 @@ public class ChatBoxController {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static final String REDIS_CHAT_KEY_PREFIX = "chatbox:";
+    @Value("${redis.key.prefix.chat_box}")
+    private String REDIS_CHAT_KEY_PREFIX;
+    //private static final String REDIS_CHAT_KEY_PREFIX = "chatbox:";
 
     @MessageMapping("/{to}/{chatBoxId}") //bỏ "/publish" vì Spring tự động thêm prefix "/publish" đã cáu hình vào các destination từ client.
     // {to} để biết SendTo đến ai customer || staff, tránh nhận lại mess của chính mình
@@ -74,6 +77,12 @@ public class ChatBoxController {
                     iceBox.setUpdatedAt(LocalDateTime.now());
                     iceBoxRepository.save(iceBox);
 
+                    // set TTL cho chatBox khi staff (click) bắt đầu xử lý
+                    Long currentTtl = redisTemplate.getExpire(REDIS_CHAT_KEY_PREFIX + chatBoxId);
+                    if (currentTtl == null || currentTtl == -1) { // nếu key vừa add msg chưa có TTL
+                        redisTemplate.expire(REDIS_CHAT_KEY_PREFIX + chatBoxId, 1, TimeUnit.MINUTES);
+                    }
+
                     // Thông báo (vừa remove: PENDING -> IN PROGRESS) để update "Ice-Box"
                     messagingTemplate.convertAndSend("/notification/update-ice-box", "UPDATE");
                 }
@@ -87,10 +96,8 @@ public class ChatBoxController {
 //                    redisTemplate.opsForList().rightPush(REDIS_CHAT_KEY_PREFIX + chatBoxId, getChatMessage(chatBoxId, to, message));
 //                }
                 // Lưu toàn bộ tin nhán (bất kể status, to?...) vào Redis + TTL
+                // Lưu tin nhắn vào Redis
                 redisTemplate.opsForList().rightPush(REDIS_CHAT_KEY_PREFIX + chatBoxId, getChatMessage(chatBoxId, to, message));
-                if (Boolean.FALSE.equals(redisTemplate.hasKey(REDIS_CHAT_KEY_PREFIX + chatBoxId))) { // nếu key chưa tồn tại thì set TTL, còn tòn tại thì để nguyên TTL set lúc đầu - phiên chat
-                    redisTemplate.expire(REDIS_CHAT_KEY_PREFIX + chatBoxId, 1, TimeUnit.MINUTES);
-                }
 
                 // 3. Kiểm tra thời hạn cuộc trò chuyện
                 LocalDateTime latestUpdate = iceBox.getUpdatedAt();
@@ -101,7 +108,7 @@ public class ChatBoxController {
                     iceBoxRepository.save(iceBox);
 
                     // Gửi thông báo tới staff để unsubscribe "/notification/staff/{chatBoxId}"
-                    messagingTemplate.convertAndSend("/notification/kill-task/" + chatBoxId, "KILL-TASK");
+                    messagingTemplate.convertAndSend("/notification/kill-task/" + chatBoxId, "KILL");
                 }
 
             } else {
@@ -157,9 +164,6 @@ public class ChatBoxController {
         response.put("EC", 0);
         response.put("MS", "Get message of box successfully.");
 
-        //List<ChatMessage> chatMessages = new ArrayList<>(chatMessageRepository.findAllByChatBoxId(chatBoxId, pageRequest).getContent()); // Nếu dùng list thay page -> ko phải immutable list -> reverse đuộc, còn nếu dùng page thì phải array list hóa result (immutable list) trước khi reverse
-        //List<ChatMessage> chatMessages1 = chatMessageRepository.findAllByChatBoxId(chatBoxId, pageRequest); // dùng list thay page thì dùng Collections.reverse() ko bị lôi do result ko phải là immutable list.
-
         // lấy tin nhắn từ Redis thay vì Database
         List<Object> messages = redisTemplate.opsForList().range(REDIS_CHAT_KEY_PREFIX + chatBoxId, 0, -1);
         // convert -> ChatMessage
@@ -171,9 +175,6 @@ public class ChatBoxController {
             //Collections.reverse(chatMessages1);
             response.put("messages", chatMessages1);
         }
-
-//        Collections.reverse(chatMessages); // đảo ngược để fe tiện hiển thị.
-//        response.put("messages", chatMessages);
 
         return ResponseEntity.ok(response);
     }
@@ -190,10 +191,10 @@ public class ChatBoxController {
 
         return ResponseEntity.ok(response);
     }
-
+////okkkkkkkkkkk
     // staff gia hạn thêm thời gian cuộc trò chuyện với customer
     @PutMapping("/extend/{chatBoxId}")
-    public ResponseEntity<?> extendTime (@PathVariable String chatBoxId) {
+    public ResponseEntity<?> extendTime (@PathVariable String chatBoxId, @RequestParam(value = "action") String action) {
         Optional<IceBox> optionalIceBox = iceBoxRepository.findById(chatBoxId);
 //        return optionalIceBox
 //                .map(
@@ -207,44 +208,17 @@ public class ChatBoxController {
 //                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Extend expired time failed.")));
 
         try {
-            redisTemplate.expire(REDIS_CHAT_KEY_PREFIX + chatBoxId, 3, TimeUnit.MINUTES);
-            return ResponseEntity.ok("Extended Time.");
+            if (action.equals("extend")) {
+                redisTemplate.expire(REDIS_CHAT_KEY_PREFIX + chatBoxId, 3, TimeUnit.MINUTES);
+                return ResponseEntity.ok("Extended Time.");
+            } else {//if (action.equals("end")) {
+                redisTemplate.expire(REDIS_CHAT_KEY_PREFIX + chatBoxId, 1, TimeUnit.MILLISECONDS);
+                return ResponseEntity.ok("Closed chat box.");
+            }
         }  catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("error: " + e.getMessage());
         }
     }
 
-
-//    @PutMapping("/status/{chatBoxId}")
-//    public ResponseEntity<?> updateStatusChatBox(@PathVariable String chatBoxId, @RequestParam(value = "status") String status) {
-//        Optional<IceBox> optionalIceBox = iceBoxRepository.findById(chatBoxId);
-//        String statusBeforeUpdate = "";
-//        if (optionalIceBox.isPresent()) {
-//            // update status
-//            IceBox iceBox = optionalIceBox.get();
-//            statusBeforeUpdate = iceBox.getStatus();
-//            iceBox.setStatus("PROCESSED");
-//            iceBoxRepository.save(iceBox);
-//
-//            return ResponseEntity.ok((Map.of("EC", 0, "MS", "Updated status: " + statusBeforeUpdate + " ---> " + iceBox.getStatus())));
-//        } else {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found Ice Box with chat_box_id."));
-//        }
-//    }
-//
-//    // call khi vừa click 1 task từ "Ice-Box" -> xóa task khỏi "Ice-Box"
-//    @DeleteMapping("/ice-box/{chatBoxId}")
-//    public ResponseEntity<?> deleteTaskFromIceBox(@PathVariable String chatBoxId) {
-//        Optional<IceBox> optionalIceBox = iceBoxRepository.findById(chatBoxId);
-//        return optionalIceBox
-//                .map(
-//                        iceBox -> {
-//                            iceBoxRepository.delete(iceBox);
-//                            return ResponseEntity.ok(Map.of("EC", 0, "MS", "Deleted task from ice box."));
-//                        }
-//                )
-//                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("EC", 1, "MS", "Not found task in ice box.")));
-//
-//    }
 
 }

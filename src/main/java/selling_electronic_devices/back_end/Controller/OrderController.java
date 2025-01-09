@@ -318,9 +318,9 @@ public class OrderController {
                 return ResponseEntity.ok(Map.of("EC", 0, "MS", "Payment successfully."));
             } else if ("24".equals(vnpParams.get("vnp_ResponseCode"))){
                 String orderId = vnpParams.get("vnp_TxnRef");
-                orderService.updateStatus(orderId, "HTT");
+                orderService.updateStatus(orderId, "DH");
                 return ResponseEntity.ok(Map.of("EC", 0, "MS", "Customer cancel payment."));
-            }else {
+            } else {
                 return ResponseEntity.ok(Map.of("EC", 1, "MS", "Payment failed", "code", vnpParams.get("vnp_ResponseCode")));
             }
 
