@@ -3,6 +3,7 @@ package selling_electronic_devices.back_end.Config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,13 +21,22 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class RedisConfig {
 
+    @Value("${redis.chat_box.host}")
+    private String chatBoxHost;
+
+    @Value("${redis.chat_box.port}")
+    private int chatBoxPort;
+
+    @Value("${redis.pattern.topic}")
+    private String patternTopic;
+
     // connection factory
     @Bean
     public RedisConnectionFactory redisConnectionFactoryChatMessage() {
 //        LettuceConnectionFactory factory = new LettuceConnectionFactory("127.0.0.1", 6379);
 //        factory.setDatabase(0);
 //        return factory;
-        return new LettuceConnectionFactory("127.0.0.1", 6379);
+        return new LettuceConnectionFactory(chatBoxHost, chatBoxPort);
     }
 
     // init an instance
@@ -67,7 +77,7 @@ public class RedisConfig {
                                                         MessageListenerAdapter listenerAdapter) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, new PatternTopic("__keyevent@0__:expired"));
+        container.addMessageListener(listenerAdapter, new PatternTopic(patternTopic));
 
         return container;
     }

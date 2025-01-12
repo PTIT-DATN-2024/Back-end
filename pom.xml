@@ -89,6 +89,7 @@
 			<version>20240303</version>
 		</dependency>
 
+		<!-- Health check -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
