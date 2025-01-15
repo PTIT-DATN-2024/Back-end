@@ -1,0 +1,212 @@
+Hướng Dẫn Thiết Lập Master/Slave PostgreSQL Replication Sử Dụng Docker Compose
+
+---
+
+### 1. Chuẩn Bị Môi Trường
+1. Cài đặt Docker và Docker Compose trên máy.
+2. Tạo thư mục chứa các tệp cần thiết:
+   2.1 Tạo và đi vào thư mục chính:
+        mkdir postgres_replication && cd postgres_replication
+   2.2 Tạo 2 thư mục phụ phụ để Mount dữ liệu từ /var/lib/postgresql/data vào ( có thể chỉnh sửa ở đây thay vì dùng nano)
+        mkdir master
+        mkdir slave
+3. Tạo file `docker-compose.yml` với nội dung sau:
+---
+   version: '3.9'
+   services:
+     master:
+       image: postgres:15
+       container_name: postgres_master
+       environment:
+         POSTGRES_USER: admin
+         POSTGRES_PASSWORD: 1234
+       ports:
+         - "5432:5432"
+       volumes:
+         - ./master:/var/lib/postgresql/data
+
+     slave:
+       image: postgres:15
+       container_name: postgres_slave
+       environment:
+         POSTGRES_USER: admin
+         POSTGRES_PASSWORD: 1234
+       depends_on:
+         - master
+       ports:
+         - "5433:5432"
+       volumes:
+         - ./slave:/var/lib/postgresql/data
+
+---
+
+### 2. Thiết Lập Master
+
+1. Chạy dịch vụ:
+
+   docker-compose up -d
+
+2. Kết nối vào container Master:
+
+   docker exec -it postgres_master bash
+
+3. Sửa file cấu hình PostgreSQL: ====||=========>>>>>>
+   3.1 Thêm vào file postgresql.config (sửa trực tiếp từ thư mục được Mount hoặc dùng nano /var/lib/postgresql/data/postgresql.conf - apt update, apt install nano trước)
+
+        wal_level = replica
+        max_wal_senders = 10
+        wal_keep_size = 64MB
+   3.2 Thêm vào file pg_hba.conf (tương tự postgresql.conf)
+         # host    replication    all               0.0.0.0/0               trust       TH ko bảo mật, cho phép tất cả IP, User...
+         host    replication    replicator2       172.18.0.3/24           trust
+
+        Trong đó: 172.18.0.3: Slave_IP: có thể dùng docker inspect postgres_slave và tìm đến chỗ IPAddress
+                                        hoặc dùng lệnh sau: docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' postgres_slave
+                  replicator2: tên user được tạo ROLE trên Master (postgres_master), tạo sau hay trước cũng được
+
+
+4. Khởi động lại PostgreSQL trong container Master:
+   pg_ctl -D /var/lib/postgresql/data restart
+
+5. Tạo người dùng replication:    ====||=========>>>>>>
+    Vào psql của Master và tạo user:
+            CREATE ROLE replicator2 WITH REPLICATION PASSWORD '1234' LOGIN; (Kiểm tra với lệnh: \du)
+
+### 3. Thiết Lập Slave
+
+1. Kết nối vào container Slave:
+
+   docker exec -it postgres_slave bash
+
+
+2. Câu hình chế độ read-only và kết nối với Master <ko cần thiết)
+    2.1 Thêm cấu hình cho file postgresql.conf của Slave
+            hot_standby = on  # cấu hình cho phép Read-only
+            primary_conninfo = 'host=172.18.0.2 port=5432 user=replicator2 password=1234'
+
+            trong đó: 172.18.0.2: là Master_IP có thể tìm được qua docker inspect postgres_master, phần IPAddress (tương tự Slave_IP)
+                      5432: port mà Master dùng để kết nối với Slave
+                      replicator2, 1234: tên user và mật khẩu vừa tạo ở phần CREATE ROLE ở Master.
+
+3. Xóa slave và sao chép Master -> Slave:(điều này sẽ tránh lỗi "database system identifier differs between the primary and standby")          ====||=========>>>>>>
+     Cách 1: docker exec -it postgres_slave bash:
+        Lệnh xóa: rm -rf /var/lib/postgresql/data/*
+        Ngay sau đó thực hiện sao chép: pg_basebackup -h postgres_master -D /var/lib/postgresql/data -U replicator2 -Fp -Xs -P -R
+
+     Cách 2:
+     Lệnh sao chép:
+        Lệnh gộp:
+            docker exec -it postgres_slave pg_basebackup -h postgres_master -D /var/lib/postgresql/data -U replicator2 -Fp -Xs -P -R
+        Hoặc vào docker exec -it postgres_slave bash rồi dùng lệnh dưới:
+            pg_basebackup -h postgres_master -U replica_user -D /var/lib/postgresql/data -P -X stream -v
+            pg_basebackup -h <Master_IP> -U replicator -D /var/lib/postgresql/data --wal-method=stream -P
+
+     Sau lệnh sao chép thì standby.signal sẽ được tạo ra
+        Ý nghĩa: để cho container hiện tại biết nó là Slave (Logs hiển thị "Start streaming WAL..." thay vì ban đầu là "database system already to connect")
+
+
+### 4. Kiểm Tra Hoạt Động Của Replication
+
+1. Tạo bảng hoặc thêm dữ liệu trên Master:
+   ```bash
+   docker exec -it postgres_master psql -U admin -c "CREATE TABLE test_table (id SERIAL PRIMARY KEY, message TEXT);"
+   docker exec -it postgres_master psql -U admin -c "INSERT INTO test_table (message) VALUES ('Hello from Master');"
+   ```
+
+2. Kiểm tra dữ liệu trên Slave:
+   ```bash
+   docker exec -it postgres_slave psql -U admin -c "SELECT  FROM test_table;"
+   ```
+   Nếu bảng và dữ liệu xuất hiện trên Slave, replication đã hoạt động.
+
+---
+
+### 5. Giám Sát Replication
+
+1. Trên Master, kiểm tra trạng thái replication:
+   docker exec -it postgres_master psql -U admin -c "SELECT  FROM pg_stat_replication;"
+   ```
+   - state: Trạng thái kết nối của Slave (vd: `streaming`).
+   - sent_lsn: Vị trí WAL được gửi.
+   - write_lsn và replay_lsn: Tiến độ ghi và phát lại trên Slave.
+
+2. Theo dõi log trên cả Master và Slave:
+   docker logs -f postgres_master
+   docker logs -f postgres_slave
+   ```
+
+---
+
+### 6. Quản Lý Hệ Thống
+
+1. Tắt hệ thống:
+   - Dừng Slave trước:
+     docker stop postgres_slave
+     ```
+   - Dừng Master sau:
+     docker stop postgres_master
+     ```
+
+2. Khởi động lại:
+   - Chạy Master trước:
+     docker start postgres_master
+     ```
+   - Chạy Slave sau:
+     docker start postgres_slave
+     ```
+
+---
+
+### 7. Tối Ưu Hóa Hệ Thống
+- Tăng kích thước WAL:
+  - Sửa tham số `wal_keep_size` trong `postgresql.conf` của Master nếu cần lưu trữ nhiều WAL hơn.
+- Giảm checkpoint quá thường xuyên:
+  - Điều chỉnh `checkpoint_timeout` và `max_wal_size` để phù hợp với khối lượng công việc.
+- Giám sát lâu dài:
+  - Sử dụng công cụ như `pgAdmin`, `Prometheus` để theo dõi hiệu suất.
+
+---
+
+Hoàn tất! Với hướng dẫn này, bạn có thể thiết lập và quản lý replication PostgreSQL thành công.
+
+    docker system prune -a --volumes
+    Giải thích:
+        -a: Xóa cả các image không sử dụng.
+        --volumes: Xóa toàn bộ volume.
+
+
+
+Ban đầu cả khi vừa run thì cả 2 container đều là Primary chả thằng nào  là Replication cả, ta sẽ phải cấu hình 1 thằng là Primary, 1 thằng là Replica:
+database system is ready to accept connection
+
+- Điểm khác biết trong setup
+    + Primary: câu hình tham số & tài khoản của Replica tham chiếu đến nó
+    + Replica: xóa dữ liệu cũ (thứ mà ban đầu giúp 2 thằng ngang hàng - Primary) & SAO CHÉP pg_basebackup sử dụng tk replicator mà Primary (Master) đã tạo.
+
+
+
+
+----------------------------------------------
+TỔNG KẾT:
+
+Bước 1:
+* Master hay Primary có 2 nhiệm vụ:
+- NV1: cấu hình
+    + Tham số trong postgresql.conf
+    + Tài khoản replica connect trong pg_hba.conf
+- NV2: tạo tài khoản cho phép replica sử dụng đế kết nôi đến mình
+    CREATE ROLE ...
+* Slave hay Replica có 2 nhiệm vụ:
+- Xóa dữ liệu (toàn bộ bao gồm cả config - thứ mà ban đầu làm lên sự ngang hàng Primary với thằng kia)     ===========>         rm -rf /var/lib/postgresql/data/*
+- Sao chép - dùng pg_basebackup với tài khoản do Master tạo cho. (sau lệnh này Slave sẽ có file standby.signal - thứ đánh dấu nó là Slave hay Replica)
+             =========> pg_basebackup -h postgres_master -D /var/lib/postgresql/data -U replicator3 -Fp -Xs -P -R
+*** Chú ý ngay sau thực hiện lệnh xóa thì dùng ngay lệnh sao chép, tránh bị shutdown khi chưa kịp sao chép. (khi shutdow xong cần chạy lại container slave -> theo mặc định nó sẽ tạo ra data mặc định -> lại phải lặp lại việc xóa):
+Hint: có cách sao chép (pg_basebackup) mà ko cần container Slave phải đang chạy.
+
+* Chú ý: Slave lúc này ở chế độ "hot standby", các thao tác ghi vào slave sẽ bị từ chối, mặc dù default_transaction_read_only có thể được đặt thành off.
+
+
+\l: list databases
+\c name_db: access database
+\d: list table of database
+okkkkkkk
