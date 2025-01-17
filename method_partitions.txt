@@ -1,0 +1,183 @@
+1. Phân vùng
+    - Là việc sử dụng các thuộc tính của dữ liệu để chia dữ liệu thành các vùng khác nhau, qua đó mang lại ưu thế:
+        + Dễ quản lý
+        + Truy xuất nhanh chóng
+        + Tránh tải lên nhưng phân vùng ko liên quan: một số vùng có được truy cập nhiều hơn vùng khác, việc tách riêng sẽ ko "làm phiền" đến các phân vùng khác. (tải chỉ phân vùng chứa dữ liệu cần thiết Gánh).
+
+2. Methods Partition
+    2.1 RANGE (attribute):
+        - Phân vùng theo KHOẢNG GIÁ TRỊ của thuộc tính được chỉ đinh. vd RANGE (age).
+        - Triển khai:
+            + Cha: PARTITION BY RANGE(age)
+            + Con: PARTITION of Cha for VALUES FROM <value_start> TO <value_end>;
+    2.2 LIST (attributes)
+        - Phân vùng theo 1 HOẶC NHIỀU NHÃN của thuộc tính được chỉ định. vd LIST (gen).
+        - Triển khai:
+            + Cha: PARTITION BY LIST(gen)
+            + Con: PARTITION of Cha for VALUES IN ('lable1', ...). (label1, lable2, ... là các giá của thuộc tính, vd: MALE, FEMALE của thuộc tính "gen".
+    2.3 HASH(attributes)
+        - Phân vùng theo hàm băm, cụ thể:
+            + Ta có tể chọn 1 hoặc nhiều thuộc tính làm input cho HASH.
+            + Sau đó Postgres sử dụng hàm băm (hashint4, hashin8, ...) để băm input -> Hash_code.
+            + Convert Hash_code -> Số_nguyên
+            + Tính Số_nguyên % n = ?
+            + Kết quả phép chia dư sẽ xác định phân vùng chứa. vd: 0 -> REMAINDER 0, 3 -> REMAINDER 2, ...
+        - Triển khai:
+            + Cha: PARTITION BY HASH (career).
+            + Con: PARTITION of Cha for VALUES WITH (MODULUS n, REMAINDER 0->n-1). trong đó: n là số phân vùng con mong muốn khi sử dụng HASH, số REMAINDER không được vượt số vùng khai báo "MODULUS n".
+3. Ví dụ
+* Phân vùng cho customers (cust):
+
+Cust --- RANGE(age)---> [cust_young, cust_medium, cust_old]
+Tiếp --- LIST(gen) ---> [cust_young_male, cust_young_female, cust_medium_male/female, cust_old_male/female]
+Tiếp --- HASH (career) ---> [cust_young_male_hash1/hash2, cust_young_female_hash1/hash2, ...cust_old_female_hash1/hash2]
+
+-- Tạo bảng cha:
+CREATE TABLE customers (
+    id SERIAL NOT NULL,
+    name TEXT NOT NULL,
+    age INT NOT NULL,
+    gen TEXT NOT NULL,
+    career TEXT,
+    PRIMARY KEY (id, age, gen)  -- Bao gồm cả cột phân vùng
+) PARTITION BY RANGE (age);
+
+-- Tạo các bảng phân vùng dựa trên RANGE (age):
+CREATE TABLE cust_young PARTITION OF customers
+    FOR VALUES FROM (MINVALUE) TO (25)
+    PARTITION BY LIST (gen);
+
+CREATE TABLE cust_medium PARTITION OF customers
+    FOR VALUES FROM (25) TO (75)
+    PARTITION BY LIST (gen);
+
+CREATE TABLE cust_old PARTITION OF customers
+    FOR VALUES FROM (75) TO (MAXVALUE)
+    PARTITION BY LIST (gen);
+
+-- Tạo các phân vùng con (subpartition) dựa trên LIST (gen) cho `cust_young`
+CREATE TABLE cust_young_female PARTITION OF cust_young
+    FOR VALUES IN ('FEMALE')
+    PARTITION BY HASH (career);
+
+CREATE TABLE cust_young_male PARTITION OF cust_young
+    FOR VALUES IN ('MALE')
+    PARTITION BY HASH (career);
+
+-- Tạo các phân vùng con (subpartition) dựa trên LIST (gen) cho `cust_medium`
+CREATE TABLE cust_medium_female PARTITION OF cust_medium
+    FOR VALUES IN ('FEMALE')
+    PARTITION BY HASH (career);
+
+CREATE TABLE cust_medium_male PARTITION OF cust_medium
+    FOR VALUES IN ('MALE')
+    PARTITION BY HASH (career);
+
+-- Tạo các phân vùng con (subpartition) dựa trên LIST (gen) cho `cust_old`
+CREATE TABLE cust_old_female PARTITION OF cust_old
+    FOR VALUES IN ('FEMALE')
+    PARTITION BY HASH (career);
+
+CREATE TABLE cust_old_male PARTITION OF cust_old
+    FOR VALUES IN ('MALE')
+    PARTITION BY HASH (career);
+
+-- Tạo các bảng phân vùng HASH (career) cho phân vùng con LIST(gen)
+-- Phân vùng cho cust_young_female
+CREATE TABLE cust_young_female_hash_1 PARTITION OF cust_young_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_young_female_hash_2 PARTITION OF cust_young_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+-- Phân vùng cho cust_young_male
+CREATE TABLE cust_young_male_hash_1 PARTITION OF cust_young_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_young_male_hash_2 PARTITION OF cust_young_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+-- Phân vùng cho cust_medium_female
+CREATE TABLE cust_medium_female_hash_1 PARTITION OF cust_medium_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_medium_female_hash_2 PARTITION OF cust_medium_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+-- Phân vùng cho cust_medium_male
+CREATE TABLE cust_medium_male_hash_1 PARTITION OF cust_medium_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_medium_male_hash_2 PARTITION OF cust_medium_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+-- Phân vùng cho cust_old_female
+CREATE TABLE cust_old_female_hash_1 PARTITION OF cust_old_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_old_female_hash_2 PARTITION OF cust_old_female
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+-- Phân vùng cho cust_old_male
+CREATE TABLE cust_old_male_hash_1 PARTITION OF cust_old_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 0);
+
+CREATE TABLE cust_old_male_hash_2 PARTITION OF cust_old_male
+    FOR VALUES WITH (MODULUS 2, REMAINDER 1);
+
+
+#### Cây gia phả
+
+         tree_structure         | parent_table_name  | level
+--------------------------------+--------------------+-------
+ customers                      |                    |     0
+   cust_medium                  | customers          |     1
+   cust_old                     | customers          |     1
+   cust_young                   | customers          |     1
+     cust_medium_female         | cust_medium        |     2
+     cust_medium_male           | cust_medium        |     2
+     cust_medium_other          | cust_medium        |     2
+     cust_old_female            | cust_old           |     2
+     cust_old_male              | cust_old           |     2
+     cust_young_female          | cust_young         |     2
+     cust_young_male            | cust_young         |     2
+       cust_medium_female_hash1 | cust_medium_female |     3
+       cust_medium_female_hash2 | cust_medium_female |     3
+       cust_medium_female_hash3 | cust_medium_female |     3
+       cust_medium_male_hash1   | cust_medium_male   |     3
+       cust_medium_male_hash2   | cust_medium_male   |     3
+       cust_medium_male_hash3   | cust_medium_male   |     3
+       cust_medium_male_hash4   | cust_medium_male   |     3
+       cus
+
+
+--Script in "Cây gia phả"--
+WITH RECURSIVE partition_tree AS (
+    -- Gốc (bảng cha ban đầu)
+    SELECT
+        c.oid AS table_oid,
+        c.relname AS table_name,
+        NULL::TEXT COLLATE "C" AS parent_table_name, -- Chỉ định collation cho phần non-recursive
+        0 AS level
+    FROM pg_class c
+    WHERE c.oid = 'customers'::regclass -- Thay 'customers' bằng bảng cha của bạn
+
+    UNION ALL
+
+    -- Các phân vùng con
+    SELECT
+        c.oid AS table_oid,
+        c.relname AS table_name,
+        p.relname AS parent_table_name,
+        pt.level + 1 AS level
+    FROM pg_class c
+    INNER JOIN pg_inherits i ON c.oid = i.inhrelid
+    INNER JOIN pg_class p ON i.inhparent = p.oid
+    INNER JOIN partition_tree pt ON p.oid = pt.table_oid
+)
+SELECT
+    REPEAT('  ', level) || table_name AS tree_structure,
+    parent_table_name,
+    level
+FROM partition_tree
+ORDER BY level, table_name;

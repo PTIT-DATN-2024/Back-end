@@ -208,5 +208,7 @@ Hint: có cách sao chép (pg_basebackup) mà ko cần container Slave phải đ
 
 \l: list databases
 \c name_db: access database
-\d: list table of database
+\d: list table of databased
+\d+ table_name; see detail table
 okkkkkkk
+
