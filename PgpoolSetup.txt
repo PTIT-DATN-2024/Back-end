@@ -1,0 +1,121 @@
+
+1. Khởi tạo:
+- Tạo thư mục cho việc mount (ánh xạ host - container)
+    + Thư mục cha: mkdir pgpool
+    + Thư mục con: mkdir conf, scripts (ko cần thiết nếu khai báo mount trong Volumes mapping)
+    + Trong /scripts tạo 2 script (thủ công)
+        ++ init.sh: tránh cơ chế của Image bitnami/pgpool ghi đè cấu hình mỗi khi restart
+        ++ failover.sh: Thực hiện Failover
+- Đổi port = 5433 trong postgresql.conf của Slave để pgpool connect được đến Slave.
+
+2. Thêm container (service "pgpool") trong docker-compose.yml
+      pgpool:
+        image: bitnami/pgpool:4
+        container_name: pgpool
+        environment:
+          - PGPOOL_BACKEND_NODES=0:postgres_master:5432,1:postgres_slave:5433
+          - PGPOOL_SR_CHECK_USER=admin
+          - PGPOOL_SR_CHECK_PASSWORD=1234
+          - PGPOOL_POSTGRES_USERNAME=admin
+          - PGPOOL_POSTGRES_PASSWORD=1234
+          - PGPOOL_ADMIN_USERNAME=pgpool_admin
+          - PGPOOL_ADMIN_PASSWORD=pgpool_password
+          - PGPOOL_FAILOVER_ON_BACKEND_ERROR=yes
+          - PGPOOL_FAILOVER_COMMAND=/opt/bitnami/scripts/pgpool/failover.sh %d %P %H %R
+        volumes:
+          - ./pgpool/conf:/opt/bitnami/pgpool/conf               ### (1)
+          - ./pgpool/scripts/init.sh:/opt/bitnami/scripts/init.sh ### (2)
+          - ./pgpool/scripts/failover.sh:/opt/bitnami/scripts/pgpool/failover.sh ### (3)
+        entrypoint: [ "/opt/bitnami/scripts/init.sh" ] ### (4) chạy scripts để đảm bảo luôn sao chéo config vào /opt/bitnami/pgpool/conf --> Tránh việc image bitnamit/pgpool kiểm tra các tệp cấu hình trong /opt/bitnami/pgpool/conf (trống hoặc thiếu) nó sẽ tạo các têệp câu hình và ghi đè lên container -> host cũng bị ghi đè do đang ánh xạ host - container.
+        ports:
+          - "5434:5432"
+        depends_on:
+          - master
+          - slave
+
+       CHÚ Ý:
+        - (1): Nếu như các container khác như master, slave thì ánh xạ này là đủ và chúng ta có thể thay đổi cấu hình bằng cách thay đổi trên host hoặc container.
+            NHƯNG image bitnami/pgpool này có một cơ chế đó là mỗi khi restart container nó check các file config (pgpool.conf, pool_hba.conf...) nếu nó thấy TRỐNG hoặc THIẾU thì nó sẽ tạo tệp cấu hình mặc định và ghi đè lên cấu hình của container (/opt/bitnami/pgpool/conf):
+            Mà đang có ánh xạ host - container => sự ghi đè đấy ảnh hưởng lên cả host (./pgpool/conf)
+        - (2)init.sh: Giải pháp là sử dụng một script (init.sh), ánh xạ nó từ host - container: (thư mục ánh xạ này khác với thư mục conf, nó ko nằm trong cơ chế kiểm tra & ghi đè của Image bitnami/pgpool nên ko bị thay đổi được)
+            + Mục đích: init.sh khi được ánh xạ sang container và được sử dụng trong Entrypoint -> Nó sẽ thực hiện nhiệm vụ:
+                    ++ LUÔN LUÔN sao chép các tệp cầu hình từ /opt/bitnami/scripts/pgpool/conf/pgpool.conf --> /opt/bitnami/pgpool/conf/pgpool.conf (tương tự cho pool_hba.conf và pool_passwd). VIỆC này đảm bảo /opt/bitnami/pgpool/conf luôn đầy đủ
+                    ==> Từ đó Image sẽ không thực hiện việc ghi đè nữa.
+        - (3): Entrypoint có tác dụng quan trọng: nó thực hiện script sao chép (init.sh) cấu hình mỗi khi restart contaier
+            + Cách hoạt động script khi được gọi:   ++Nếu host (./pgpool/conf) có dữ liệu nó sẽ ưu tiên ánh xạ host -container ./pgpool/conf -> /opt/bitnami/pgpool/conf (do cơ chế của entrypoint nên Image ko thực hiện ghi đè).
+                                                    ++Nếu host trống -> nó sẽ thực hiện sao chép
+        - (4): scripts cho FAILOVER.
+3. cấu hình
+    2.1 "pgpool.conf" đã được ánh xạ đầy đủ (nếu các biến môi trươờng trong enviroment chỉ định rõ)
+        - Sửa cấu hình trong "pgpool.conf" (thay password , ...)
+    2.2 "pool_hba.conf" thêm cấu hình sau:
+        # Config
+        host    all             all             0.0.0.0/0       trust
+        host    replication     replicator3     0.0.0.0/0       trust  (cách dòng này xuống dòng - bởi mỗi khi khởi động lại sẽ thêm cấu hình auto được ghi thêm vào, cách ra để tránh lỗi cấu hình)
+4. Scripts
+    4.1 pgpool/scripts/failover.sh
+        #!/bin/bash
+        FAILED_NODE_ID=$1
+        NEW_PRIMARY_NODE=$2
+
+        echo "Failover triggered. Node $FAILED_NODE_ID failed. Promoting $NEW_PRIMARY_NODE to primary."
+
+        # Đặt mật khẩu cho user 'admin' thông qua biến môi trường
+        export PGPASSWORD="1234"
+
+        if [ "$FAILED_NODE_ID" == "0" ]; then
+            psql -h postgres_slave -p 5433 -U admin -c "SELECT pg_promote();"
+        fi
+    4.2 pgpool/scripts/init.sh
+        #!/bin/bash
+
+        # Xóa tệp PID cũ trước khi Pgpool-II khởi động - thiếu phần này -> "error: pid file found..."
+        if [ -f "/opt/bitnami/pgpool/tmp/pgpool.pid" ]; then
+          echo "Xóa tệp PID cũ..."
+          rm -f /opt/bitnami/pgpool/tmp/pgpool.pid
+        fi
+
+        cp /opt/bitnami/scripts/pgpool/conf/pgpool.conf /opt/bitnami/pgpool/conf/pgpool.conf
+        cp /opt/bitnami/scripts/pgpool/conf/pool_hba.conf /opt/bitnami/pgpool/conf/pool_hba.conf
+        cp /opt/bitnami/scripts/pgpool/conf/pool_passwd /opt/bitnami/pgpool/conf/pool_passwd
+        exec /opt/bitnami/scripts/pgpool/run.sh
+
+
+
+5. Commands & Error
+!Error: Lỗi "psql: error: connection to server on socket "/tmp/.s.PGSQL.5432" failed: No such file or directory"
+    - Nguyên nhân: psql -U admin dùng đê kết nối từ client đến server thông qua Unix Socket (ví dụ: từ postgresql-client -> postgresql-serve [local]). Nhưng pgpool là proxy nằm ở giữa client - server -> không kết nối đến server thông qua lệnh củ client (giống như việc 17 tuổi (pgpool) nhưng lại muốn đi vào rạp phim miễn phí (connect psql -U admin) - điều mà chỉ cho phép trẻ em <= 7 tuổi (client) )
+    - Giải pháp: thêm -h (có thể thêm cả -p để chỉ định port) để kết nối đến server thông qua TCP/IP
+        command: psql -U admin -c "SHOW pool_nodes;"
+        HOẶC Thêm -h để chỉ định thư mục socket (opt/bitnami/pgpool/tmp) (có thể thêm cả -p 5432: chỉ định port)
+            psql -h /opt/bitnami/pgpool/tmp -p 5432 -U admin -c "SHOW pool_nodes;"
+!Error: Lỗi trong "pgpool": pid file found. is another pgpool(1) is running?
+    - Lỗi này xảy ra vì tệp PID (Process ID) của Pgpool-II vẫn tồn tại từ phiên bản trước, khiến nó cho rằng một tiến trình Pgpool-II khác đang chạy.
+    - Giải pháp: Thêm lệnh xóa vào đầu init.sh để đảm bảo tệp PID cũ được xóa trước khi Pgpool-II khởi động:
+
+- Lệnh show danh sách nodes mà Pgpool đang quản lý:
+        command: SHOW pool_nodes;
+
+- Cấp quyền cho thư mục OR file
+    command: icacls "D:\electronic_devices\back-end\pg_primary_replica\pgpool\conf" /grant Everyone:F
+    command: icacls ./pgpool/conf/pool_hba.conf /grant Everyone:F
+
+- Lệnh chuyển SLAVE -> PRIMARY: psql -h $NEW_PRIMARY_HOST -p $NEW_PRIMARY_PORT -c "SELECT pg_promote();"
+
+- Lệnh xem tệp:
+    Command: cat /opt/bitnami/scripts/pgpool/follow_primary.sh
+
+### TÓM TẮT:
+1. Tạo 2 script init.sh và failover.sh trong /pgpool/scripts/
+2. Thêm container "pgpool" trong docker-compose với: env, entrypoint, mount volumes.
+3. port = 5433 trong postgresql.conf của Slave => restart Slave
+4. Sau khi chạy docker compose up -d
+    4.1 Đổi password trong "pgpool.conf" tương ứng env.
+        failover_command = '/opt/bitnami/scripts/pgpool/failover.sh %d %P %H %R'
+        load_balance_mode = on
+        auto_failback = off         #Tắt để tránh Pgpool tự động gắn lại node bị lỗi mà không được kiểm soát.
+
+    4.2 Thêm cấu hình trong "pool_hba.conf"
+    => restart "pgpool"
+
+SELECT current_database(), current_user, inet_server_addr(), inet_server_port();

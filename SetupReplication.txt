@@ -197,10 +197,10 @@ Bước 1:
 - NV2: tạo tài khoản cho phép replica sử dụng đế kết nôi đến mình
     CREATE ROLE ...
 * Slave hay Replica có 2 nhiệm vụ:
-- Xóa dữ liệu (toàn bộ bao gồm cả config - thứ mà ban đầu làm lên sự ngang hàng Primary với thằng kia)     ===========>         rm -rf /var/lib/postgresql/data/*
+- Xóa dữ liệu (toàn bộ bao gồm cả config - thứ mà ban đầu làm lên sự ngang hàng Primary với thằng kia)     ===========>    rm -rf /var/lib/postgresql/data/*
 - Sao chép - dùng pg_basebackup với tài khoản do Master tạo cho. (sau lệnh này Slave sẽ có file standby.signal - thứ đánh dấu nó là Slave hay Replica)
              =========> pg_basebackup -h postgres_master -D /var/lib/postgresql/data -U replicator3 -Fp -Xs -P -R
-*** Chú ý ngay sau thực hiện lệnh xóa thì dùng ngay lệnh sao chép, tránh bị shutdown khi chưa kịp sao chép. (khi shutdow xong cần chạy lại container slave -> theo mặc định nó sẽ tạo ra data mặc định -> lại phải lặp lại việc xóa):
+*** Chú ý ngay sau thực hiện lệnh xóa thì dùng ngay lệnh sao chép, tránh bị shutdown khi chưa kịp sao chép. (khi shutdown xong cần chạy lại container slave -> theo mặc định nó sẽ tạo ra data mặc định -> lại phải lặp lại việc xóa):
 Hint: có cách sao chép (pg_basebackup) mà ko cần container Slave phải đang chạy.
 
 * Chú ý: Slave lúc này ở chế độ "hot standby", các thao tác ghi vào slave sẽ bị từ chối, mặc dù default_transaction_read_only có thể được đặt thành off.
@@ -212,3 +212,5 @@ Hint: có cách sao chép (pg_basebackup) mà ko cần container Slave phải đ
 \d+ table_name; see detail table
 okkkkkkk
 
+- Lệnh xem file:
+    Command: cat /path/...

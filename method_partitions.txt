@@ -39,7 +39,7 @@ CREATE TABLE customers (
     age INT NOT NULL,
     gen TEXT NOT NULL,
     career TEXT,
-    PRIMARY KEY (id, age, gen)  -- Bao gồm cả cột phân vùng
+    PRIMARY KEY (id, age, gen, career)  -- Bao gồm cả cột phân vùng
 ) PARTITION BY RANGE (age);
 
 -- Tạo các bảng phân vùng dựa trên RANGE (age):
@@ -126,6 +126,24 @@ CREATE TABLE cust_old_male_hash_2 PARTITION OF cust_old_male
     FOR VALUES WITH (MODULUS 2, REMAINDER 1);
 
 
+*** Lưu ý: Các thuộc tính phân vùng phải có trong Primary Key (...) để đảm bảo tính toàn vẹn của dữ liệu, vì:
+- Mỗi bảng phân vùng được xem như một bảng độc lập, do đó nếu xét tính toàn vẹn trong bảng con đó thì nó thỏa mãn, NHƯNG khi đứng ở khía cạnh của bảng Cha thì sẽ bị vi phạm tính toàn vẹn
+    + vd: Bảng Cha customers -> 3 bảng con cust_young, cust_medium, cust_old
+        ++ TH: nếu Primary Key (id):
+            cust_young: bản ghi (id = 1, age = 20)
+            cust_medium: bản ghi (id = 1, age = 45)
+            => Ở cấp bảng con thì thỏa mãn id là duy nhất (primary key) NHƯNG ở bảng Cha customers thì bị vi phạm toàn vẹn do có 2 id = 1
+        ++ TH: Primary Key (id, age):
+            => Ở cấp bảng con vẫn Ok, bảng Cha yêu cầu tổ hợp (id, age) là duy nhất thay vì chỉ "id" như TH1 --> đảm báo toàn vẹn.
+            Ngay từ khi rẽ nhánh nó đã chia các bản ghi ra các vùng khác nhau - tức là nó đảm bảo rằng bản ghi của phân vùng này và phân vùng kia (dựa theo "age") là CHẮC CHẮN KHÁC NHAU (1)
+            Mà mỗi bản ghi trong 1 bảng phân vùng cụ thể vốn đã khác nhau (do "id" định nghĩa như TH1) (2).
+            Từ (1), (2) ==> Việc dùng tổ hợp (id, age) cho Primary Key sẽ đảm bảo TOÀN BỘ bản ghi trong tất cả phân vùng cùng cấp (sau khi chia theo "age") nhìn từ khía cạnh Cha sẽ là DUY NHẤT (ĐẢM BẢO TÍNH TOÀN VẸN).
+
+- Trường hợp tương tự xảy ra khi sử dụng các thuộc tính khác để phân vùng các cấp SÂU HƠN - nó phải được thêm vào Primary Key của customers. Nếu không cho một thuộc tính phân vùng vào Primary Key thì sẽ xảy ra tình trạng: Bảng Cha thấy các bản ghi ở các bảng con trùng nhau về tổ hợp trước đó.
+       vd: (id = 1, age = 20, career = Doctor), (id = 1, age, career = Software Engineer) ở 2 bảng khi phân vùng theo "career" -> Chúng đảm bảo trong bảng con (id, age) là duy nhất, nhưng khi nhìn từ bảng Cha thì sẽ bị vị phạm do có 2 bản ghi (ở 2 bảng con) trùng (id, age) ====> Thêm "career" vào tổ hợp Primary Key (id, age, career).
+
+===> TÓM LẠI, MỤC ĐÍCH LÀ ĐỂ ĐẢM BẢO TOÀN BỘ BẢN GHI LÀ KHÁC NHAU. Bởi thực tế là các bản ghi được lưu ở các nút lá (các bảng sau cùng).
+
 #### Cây gia phả
 
          tree_structure         | parent_table_name  | level
@@ -148,7 +166,6 @@ CREATE TABLE cust_old_male_hash_2 PARTITION OF cust_old_male
        cust_medium_male_hash2   | cust_medium_male   |     3
        cust_medium_male_hash3   | cust_medium_male   |     3
        cust_medium_male_hash4   | cust_medium_male   |     3
-       cus
 
 
 --Script in "Cây gia phả"--
